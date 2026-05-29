@@ -4,7 +4,7 @@ Last updated: 2026-05-29
 
 ## Current Phase
 
-Phase 0 is complete enough to begin Phase 1.
+Phase 0 is complete.
 
 Next active phase:
 
@@ -33,8 +33,9 @@ The iPhone app and backend will later handle:
 
 ## Next Concrete Action
 
-Create the initial iOS + watchOS Xcode project and implement the first watch
-recording prototype.
+Run the watchOS recording prototype in Xcode on a simulator or real Apple Watch
+and document microphone permission, recording, stopping, and saved-file
+behavior.
 
 ## Guardrails
 
@@ -50,3 +51,8 @@ recording prototype.
 3. `docs/decision-log.md`
 4. Latest file under `docs/phase-logs/`
 
+## Latest Build Result
+
+- 2026-05-29: `WatchMemoWatch` command-line build succeeded with Xcode 26.2.
+- Limitation: simulator launch and real microphone behavior were not validated
+  inside the current sandbox.
