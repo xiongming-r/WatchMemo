@@ -1,5 +1,66 @@
 # Development Notes
 
+## Open The Companion Project
+
+Project:
+
+`WatchMemo/apps/companion/WatchMemo.xcodeproj`
+
+Schemes:
+
+- `WatchMemo`
+- `WatchMemoWatch`
+
+## Companion Command-Line Builds
+
+Watch app:
+
+```sh
+xcodebuild \
+  -project WatchMemo/apps/companion/WatchMemo.xcodeproj \
+  -scheme WatchMemoWatch \
+  -destination 'generic/platform=watchOS Simulator' \
+  build
+```
+
+iPhone companion:
+
+```sh
+xcodebuild \
+  -project WatchMemo/apps/companion/WatchMemo.xcodeproj \
+  -scheme WatchMemo \
+  -destination 'generic/platform=iOS Simulator' \
+  build
+```
+
+If the iOS build reports that the iOS platform is not installed, install it
+with:
+
+```sh
+xcodebuild -downloadPlatform iOS
+```
+
+Validated local platforms:
+
+- watchOS 26.2 Simulator Runtime.
+- iOS 26.3.1 Simulator Runtime downloaded through Xcode. The active SDK used by
+  Xcode 26.2 for the build is iPhoneSimulator 26.2.
+
+## Companion Debug Recording Self-Test
+
+After building and installing the companion watch app to a booted watchOS
+simulator:
+
+```sh
+SIMCTL_CHILD_WATCHMEMO_AUTOTEST_RECORDING=1 \
+xcrun simctl launch --terminate-running-process \
+  <WATCH_DEVICE_UDID> \
+  com.watchmemo.app.watchkitapp
+```
+
+The app records briefly, stores audio under `Documents/Recordings/`, and writes
+queue metadata to `Documents/recordings.json`.
+
 ## Open The watchOS Prototype
 
 Project:

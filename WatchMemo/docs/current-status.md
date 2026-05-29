@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-29 18:10 Asia/Shanghai
+Last updated: 2026-05-29 18:25 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,11 +8,11 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/research-open-source-landscape.md`
+- `docs/phase-logs/phase-2-companion-delivery.md`
 
 Next active phase:
 
-- `docs/phase-logs/phase-1-watch-recording-prototype.md`
+- Real paired-device WatchConnectivity validation.
 
 ## Product Direction
 
@@ -37,15 +37,12 @@ The iPhone app and backend will later handle:
 
 ## Next Concrete Action
 
-Start Phase 2 with a standard Xcode iOS + watchOS companion project.
+Validate WatchConnectivity on paired hardware:
 
-The Phase 2 transfer layer should be modeled as a replaceable `DeliveryQueue`
-with transports, not as a hard-coded "send to iPhone" feature:
-
-- `iPhoneRelayTransport` first, using Watch Connectivity.
-- `DirectCloudUploadTransport` later, using background `URLSession` if reliable.
-- `KnowledgeExportTransport` later, emitting Markdown / Obsidian integrations
-  after transcription and cleanup.
+- The new companion project exists at `apps/companion/WatchMemo.xcodeproj`.
+- The watchOS target builds and can save a queued local recording in simulator.
+- The iOS target builds after installing the iOS Simulator platform.
+- Real WatchConnectivity file transfer still requires paired hardware.
 
 ## Guardrails
 
@@ -75,3 +72,6 @@ with transports, not as a hard-coded "send to iPhone" feature:
   No all-in-one open-source WatchMemo equivalent was found, but Apple
   WatchConnectivity, Communicator, SwiftWhisper, TUSKit, and Obsidian export
   options should shape later implementation choices.
+- 2026-05-29: Added Phase 2 companion project with watch recording queue and
+  WatchConnectivity relay stub. watchOS and iOS builds passed; simulator
+  autotest created an `.m4a` and `recordings.json`.

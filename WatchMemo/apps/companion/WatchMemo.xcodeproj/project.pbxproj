@@ -1,0 +1,402 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B20000000000000000000011 /* WatchMemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000021 /* WatchMemoApp.swift */; };
+		B20000000000000000000012 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000022 /* ContentView.swift */; };
+		B20000000000000000000013 /* WatchMemoWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000023 /* WatchMemoWatchApp.swift */; };
+		B20000000000000000000014 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000024 /* ContentView.swift */; };
+		B20000000000000000000015 /* RecordingManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000027 /* RecordingManifest.swift */; };
+		B20000000000000000000016 /* LocalRecordingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000028 /* LocalRecordingStore.swift */; };
+		B20000000000000000000017 /* DeliveryQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000029 /* DeliveryQueue.swift */; };
+		B20000000000000000000018 /* RecorderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* RecorderViewModel.swift */; };
+		B20000000000000000000019 /* IPhoneRelayTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002B /* IPhoneRelayTransport.swift */; };
+		B2000000000000000000001A /* PhoneConnectivityReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002C /* PhoneConnectivityReceiver.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B20000000000000000000021 /* WatchMemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMemoApp.swift; sourceTree = "<group>"; };
+		B20000000000000000000022 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B20000000000000000000023 /* WatchMemoWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMemoWatchApp.swift; sourceTree = "<group>"; };
+		B20000000000000000000024 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B20000000000000000000025 /* WatchMemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WatchMemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20000000000000000000026 /* WatchMemoWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WatchMemoWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20000000000000000000027 /* RecordingManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingManifest.swift; sourceTree = "<group>"; };
+		B20000000000000000000028 /* LocalRecordingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalRecordingStore.swift; sourceTree = "<group>"; };
+		B20000000000000000000029 /* DeliveryQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryQueue.swift; sourceTree = "<group>"; };
+		B2000000000000000000002A /* RecorderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderViewModel.swift; sourceTree = "<group>"; };
+		B2000000000000000000002B /* IPhoneRelayTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPhoneRelayTransport.swift; sourceTree = "<group>"; };
+		B2000000000000000000002C /* PhoneConnectivityReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneConnectivityReceiver.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B20000000000000000000031 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20000000000000000000032 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B20000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000003 /* WatchMemo */,
+				B20000000000000000000004 /* WatchMemoWatch */,
+				B20000000000000000000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B20000000000000000000003 /* WatchMemo */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000021 /* WatchMemoApp.swift */,
+				B20000000000000000000022 /* ContentView.swift */,
+				B2000000000000000000002C /* PhoneConnectivityReceiver.swift */,
+			);
+			path = WatchMemo;
+			sourceTree = "<group>";
+		};
+		B20000000000000000000004 /* WatchMemoWatch */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000023 /* WatchMemoWatchApp.swift */,
+				B20000000000000000000024 /* ContentView.swift */,
+				B20000000000000000000027 /* RecordingManifest.swift */,
+				B20000000000000000000028 /* LocalRecordingStore.swift */,
+				B20000000000000000000029 /* DeliveryQueue.swift */,
+				B2000000000000000000002A /* RecorderViewModel.swift */,
+				B2000000000000000000002B /* IPhoneRelayTransport.swift */,
+			);
+			path = WatchMemoWatch;
+			sourceTree = "<group>";
+		};
+		B20000000000000000000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000025 /* WatchMemo.app */,
+				B20000000000000000000026 /* WatchMemoWatch.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B20000000000000000000006 /* WatchMemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B20000000000000000000061 /* Build configuration list for PBXNativeTarget "WatchMemo" */;
+			buildPhases = (
+				B20000000000000000000033 /* Sources */,
+				B20000000000000000000031 /* Frameworks */,
+				B20000000000000000000035 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WatchMemo;
+			productName = WatchMemo;
+			productReference = B20000000000000000000025 /* WatchMemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B20000000000000000000007 /* WatchMemoWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B20000000000000000000062 /* Build configuration list for PBXNativeTarget "WatchMemoWatch" */;
+			buildPhases = (
+				B20000000000000000000034 /* Sources */,
+				B20000000000000000000032 /* Frameworks */,
+				B20000000000000000000036 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WatchMemoWatch;
+			productName = WatchMemoWatch;
+			productReference = B20000000000000000000026 /* WatchMemoWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B20000000000000000000000 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					B20000000000000000000006 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					B20000000000000000000007 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+				};
+			};
+			buildConfigurationList = B20000000000000000000060 /* Build configuration list for PBXProject "WatchMemo" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B20000000000000000000001;
+			productRefGroup = B20000000000000000000005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B20000000000000000000006 /* WatchMemo */,
+				B20000000000000000000007 /* WatchMemoWatch */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B20000000000000000000035 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20000000000000000000036 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B20000000000000000000033 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B20000000000000000000011 /* WatchMemoApp.swift in Sources */,
+				B20000000000000000000012 /* ContentView.swift in Sources */,
+				B2000000000000000000001A /* PhoneConnectivityReceiver.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20000000000000000000034 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B20000000000000000000013 /* WatchMemoWatchApp.swift in Sources */,
+				B20000000000000000000014 /* ContentView.swift in Sources */,
+				B20000000000000000000015 /* RecordingManifest.swift in Sources */,
+				B20000000000000000000016 /* LocalRecordingStore.swift in Sources */,
+				B20000000000000000000017 /* DeliveryQueue.swift in Sources */,
+				B20000000000000000000018 /* RecorderViewModel.swift in Sources */,
+				B20000000000000000000019 /* IPhoneRelayTransport.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B20000000000000000000040 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B20000000000000000000041 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B20000000000000000000050 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.watchmemo.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B20000000000000000000051 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.watchmemo.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		B20000000000000000000052 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WatchMemo records audio so you can capture meetings, conversations, and ideas from your watch.";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.watchmemo.app;
+				INFOPLIST_KEY_WKApplication = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.watchmemo.app.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		B20000000000000000000053 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WatchMemo records audio so you can capture meetings, conversations, and ideas from your watch.";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.watchmemo.app;
+				INFOPLIST_KEY_WKApplication = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.watchmemo.app.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B20000000000000000000060 /* Build configuration list for PBXProject "WatchMemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B20000000000000000000040 /* Debug */,
+				B20000000000000000000041 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B20000000000000000000061 /* Build configuration list for PBXNativeTarget "WatchMemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B20000000000000000000050 /* Debug */,
+				B20000000000000000000051 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B20000000000000000000062 /* Build configuration list for PBXNativeTarget "WatchMemoWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B20000000000000000000052 /* Debug */,
+				B20000000000000000000053 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B20000000000000000000000 /* Project object */;
+}
