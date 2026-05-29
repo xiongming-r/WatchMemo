@@ -55,6 +55,17 @@ AI ingestion / knowledge backend
 The iPhone path remains the fallback and management surface even if direct
 upload exists.
 
+The transfer implementation should use a replaceable delivery boundary:
+
+```text
+Recording
+  -> LocalRecordingStore
+  -> DeliveryQueue
+      -> iPhoneRelayTransport
+      -> DirectCloudUploadTransport later
+      -> KnowledgeExportTransport later
+```
+
 ## Initial Technology Stack
 
 Recommended first stack:
@@ -105,6 +116,11 @@ needed around audio capture support, app review, SDK access, and distribution.
 
 Do not introduce AI, backend, or cross-platform complexity before the watch
 recording and iPhone transfer loop is proven.
+
+Do not adopt a third-party transfer framework until at least one direct
+WatchConnectivity file-transfer implementation has been built and tested. Use
+open-source projects as references first, then adopt only when they clearly
+reduce maintenance risk.
 
 ## Delivery Strategy
 

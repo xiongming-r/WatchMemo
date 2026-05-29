@@ -1,10 +1,14 @@
 # Current Status
 
-Last updated: 2026-05-29 17:24 Asia/Shanghai
+Last updated: 2026-05-29 18:10 Asia/Shanghai
 
 ## Current Phase
 
 Phase 0 is complete.
+
+Latest completed checkpoint:
+
+- `docs/research-open-source-landscape.md`
 
 Next active phase:
 
@@ -33,15 +37,23 @@ The iPhone app and backend will later handle:
 
 ## Next Concrete Action
 
-Manually confirm the tap-to-record button in Xcode or on a real Apple Watch.
-The command-line/debug self-test has already validated microphone permission,
-recording, stopping, and local `.m4a` file creation on watchOS Simulator.
+Start Phase 2 with a standard Xcode iOS + watchOS companion project.
+
+The Phase 2 transfer layer should be modeled as a replaceable `DeliveryQueue`
+with transports, not as a hard-coded "send to iPhone" feature:
+
+- `iPhoneRelayTransport` first, using Watch Connectivity.
+- `DirectCloudUploadTransport` later, using background `URLSession` if reliable.
+- `KnowledgeExportTransport` later, emitting Markdown / Obsidian integrations
+  after transcription and cleanup.
 
 ## Guardrails
 
 - Do not build backend features before watch recording works.
 - Do not build Xiaomi/Huawei versions before the watchOS MVP is proven.
 - Do not add complex AI features before file recording and transfer are stable.
+- Do not couple recording storage directly to one destination; always keep a
+  local queue and metadata state.
 - Keep each phase documented before moving to the next one.
 
 ## Files To Read First In A Future Session
@@ -59,3 +71,7 @@ recording, stopping, and local `.m4a` file creation on watchOS Simulator.
   a 3-second Debug self-test recording saved as `.m4a`.
 - Limitation: manual button tapping was not fully validated through automation;
   real Apple Watch behavior still needs validation.
+- 2026-05-29: Completed pre-Phase-2 research on open-source building blocks.
+  No all-in-one open-source WatchMemo equivalent was found, but Apple
+  WatchConnectivity, Communicator, SwiftWhisper, TUSKit, and Obsidian export
+  options should shape later implementation choices.

@@ -99,3 +99,31 @@ Implication:
 
 Phase 2 remains a standard iOS + watchOS companion project. Later phases should
 add a delivery queue that can support both iPhone relay and direct cloud upload.
+
+## 2026-05-29: Research before Phase 2, but do not adopt a large framework yet
+
+Decision:
+
+Do not adopt a large third-party framework before implementing the first
+WatchConnectivity file transfer path ourselves.
+
+Why:
+
+- Research did not find a complete open-source watchOS recording-to-AI-to-
+  knowledge-base product that can be reused directly.
+- Apple provides the authoritative Watch Connectivity sample and APIs, and file
+  transfer behavior is central enough that we need to understand it firsthand.
+- `Communicator` is a promising MIT-licensed wrapper around WatchConnectivity,
+  but adopting it before building one direct path may hide lifecycle and retry
+  behavior that we need to reason about.
+- `WatchLink` is useful for later real-time status/control messaging, but it is
+  not the first fit for audio file transfer.
+- `SwiftWhisper`, `WhisperBoard`, `TUSKit`, Obsidian URI, and Obsidian Local
+  REST API are useful references or later integrations, not Phase 2 foundations.
+
+Implication:
+
+Phase 2 should introduce a `DeliveryQueue` boundary. The first transport will
+be `iPhoneRelayTransport` using Watch Connectivity. Later transports can add
+direct cloud upload and knowledge-base export without changing recording
+storage.
