@@ -37,7 +37,7 @@ struct ContentView: View {
         .padding()
         .task {
             await recorder.prepare()
+            await recorder.runAutotestIfRequested()
         }
     }
 }
-

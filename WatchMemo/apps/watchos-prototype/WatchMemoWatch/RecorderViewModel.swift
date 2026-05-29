@@ -9,6 +9,7 @@ final class RecorderViewModel: NSObject, ObservableObject {
 
     private var recorder: AVAudioRecorder?
     private var timer: Timer?
+    private var didRunAutotest = false
 
     var statusTitle: String {
         isRecording ? "Recording" : "Ready"
@@ -31,6 +32,26 @@ final class RecorderViewModel: NSObject, ObservableObject {
         } else {
             await startRecording()
         }
+    }
+
+    func runAutotestIfRequested() async {
+        #if DEBUG
+        guard ProcessInfo.processInfo.environment["WATCHMEMO_AUTOTEST_RECORDING"] == "1",
+              !didRunAutotest else {
+            return
+        }
+
+        didRunAutotest = true
+        await startRecording()
+
+        guard isRecording else {
+            return
+        }
+
+        try? await Task.sleep(for: .seconds(3))
+        stopRecording()
+        message = "Autotest recording saved"
+        #endif
     }
 
     private func startRecording() async {
@@ -97,7 +118,7 @@ final class RecorderViewModel: NSObject, ObservableObject {
 
     private func requestMicrophoneAccess() async -> Bool {
         await withCheckedContinuation { continuation in
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            AVAudioApplication.requestRecordPermission { granted in
                 continuation.resume(returning: granted)
             }
         }
@@ -122,4 +143,3 @@ extension RecorderViewModel: AVAudioRecorderDelegate {
         }
     }
 }
-

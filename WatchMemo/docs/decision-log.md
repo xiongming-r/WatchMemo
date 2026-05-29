@@ -56,3 +56,21 @@ Why:
 - Phase logs prevent goal drift.
 - Future sessions can resume from documented state rather than memory.
 
+## 2026-05-29: Use a standard companion project for Phase 2
+
+Decision:
+
+Phase 2 should move from the hand-written standalone watchOS prototype project
+to a standard Xcode-generated iOS + watchOS companion project.
+
+Why:
+
+- The hand-written target was useful for validating the recording code quickly.
+- Installing to the watchOS Simulator exposed watch target metadata requirements
+  such as `WKCompanionAppBundleIdentifier`.
+- Changing the product type manually to `application.watchapp2` caused duplicate
+  build outputs, which suggests more Xcode template-generated target settings
+  are needed.
+- Phase 2 needs Watch Connectivity and an iPhone companion anyway, so a standard
+  companion project is the better foundation.
+

@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-29
+Last updated: 2026-05-29 17:24 Asia/Shanghai
 
 ## Current Phase
 
@@ -33,9 +33,9 @@ The iPhone app and backend will later handle:
 
 ## Next Concrete Action
 
-Run the watchOS recording prototype in Xcode on a simulator or real Apple Watch
-and document microphone permission, recording, stopping, and saved-file
-behavior.
+Manually confirm the tap-to-record button in Xcode or on a real Apple Watch.
+The command-line/debug self-test has already validated microphone permission,
+recording, stopping, and local `.m4a` file creation on watchOS Simulator.
 
 ## Guardrails
 
@@ -54,5 +54,8 @@ behavior.
 ## Latest Build Result
 
 - 2026-05-29: `WatchMemoWatch` command-line build succeeded with Xcode 26.2.
-- Limitation: simulator launch and real microphone behavior were not validated
-  inside the current sandbox.
+- 2026-05-29: Installed watchOS 26.2 Simulator Runtime, launched the prototype
+  on Apple Watch Series 11 (46mm), granted microphone permission, and validated
+  a 3-second Debug self-test recording saved as `.m4a`.
+- Limitation: manual button tapping was not fully validated through automation;
+  real Apple Watch behavior still needs validation.

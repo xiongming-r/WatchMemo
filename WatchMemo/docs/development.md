@@ -29,6 +29,49 @@ xcodebuild \
 Last known result:
 
 - 2026-05-29: Build succeeded on Xcode 26.2.
+- 2026-05-29: Build succeeded against Apple Watch Series 11 (46mm) watchOS 26.2
+  simulator.
+
+## Runtime Setup
+
+The machine initially had watchOS SDK support but no installed Simulator
+Runtime. Install it with:
+
+```sh
+xcodebuild -downloadPlatform watchOS
+```
+
+Validated runtime:
+
+- watchOS 26.2, build 23S303.
+
+## Debug Recording Self-Test
+
+The prototype includes a Debug-only self-test entry point because automated
+clicking inside the watchOS Simulator can be unreliable.
+
+After installing the app to a booted simulator, launch with:
+
+```sh
+SIMCTL_CHILD_WATCHMEMO_AUTOTEST_RECORDING=1 \
+xcrun simctl launch --terminate-running-process \
+  <WATCH_DEVICE_UDID> \
+  com.watchmemo.prototype.watch
+```
+
+The app automatically records for about 3 seconds, stops, and saves a local
+`.m4a` file in its Documents directory.
+
+To inspect the data container:
+
+```sh
+xcrun simctl get_app_container \
+  <WATCH_DEVICE_UDID> \
+  com.watchmemo.prototype.watch \
+  data
+```
+
+Then look under `Documents/`.
 
 ## Manual Validation Needed
 
@@ -48,3 +91,10 @@ Phase 1 still needs manual validation in Xcode:
 
 Real Apple Watch testing is preferred before Phase 1 is considered fully done.
 
+Latest automated validation:
+
+- Microphone prompt appeared on watchOS Simulator.
+- Permission was granted.
+- Debug self-test recorded for about 3 seconds.
+- `.m4a` file was created in the app Documents directory.
+- `afinfo` recognized it as mono AAC, 16 kHz, estimated duration 3.068 seconds.

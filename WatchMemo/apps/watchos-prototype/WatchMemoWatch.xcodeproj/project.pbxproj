@@ -258,6 +258,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WatchMemo records audio so you can capture meetings, conversations, and ideas from your watch.";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.watchmemo.prototype;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -285,6 +286,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WatchMemo records audio so you can capture meetings, conversations, and ideas from your watch.";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.watchmemo.prototype;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -326,4 +328,3 @@
 	};
 	rootObject = A10000000000000000000000 /* Project object */;
 }
-
