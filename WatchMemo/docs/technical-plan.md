@@ -23,7 +23,7 @@ Apple Watch app
   - local audio file storage
   - lightweight tags/status
         |
-        | Watch Connectivity
+        | primary reliability path: Watch Connectivity
         v
 iPhone app
   - recording card list
@@ -40,6 +40,20 @@ Backend
   - action item extraction
   - search/indexing later
 ```
+
+Future versions can also add a direct Watch-to-cloud path:
+
+```text
+Apple Watch app
+  - local recording queue
+        |
+        | optional fast path: URLSession background upload
+        v
+AI ingestion / knowledge backend
+```
+
+The iPhone path remains the fallback and management surface even if direct
+upload exists.
 
 ## Initial Technology Stack
 
@@ -92,3 +106,29 @@ needed around audio capture support, app review, SDK access, and distribution.
 Do not introduce AI, backend, or cross-platform complexity before the watch
 recording and iPhone transfer loop is proven.
 
+## Delivery Strategy
+
+The product goal is not "sync everything to iPhone." The product goal is:
+
+1. Never lose a recording.
+2. Process it into clean, accurate text as soon as possible.
+3. Deliver the processed note to the user's knowledge system.
+
+Recommended delivery model:
+
+- Always save the original audio file locally on Apple Watch first.
+- Maintain a local queue with states such as recorded, uploading, uploaded,
+  transferred_to_phone, processed, exported, and failed.
+- Use Watch Connectivity to transfer recordings to the iPhone as the primary
+  reliability path for the MVP.
+- Later add direct Watch-to-cloud upload through `URLSession` background
+  transfers as a fast path.
+- If direct upload fails, is delayed, or the watch has poor network, keep the
+  recording queued and transfer it to iPhone when possible.
+- Treat Obsidian or other knowledge bases as output destinations for processed
+  text, not as the first raw-audio storage layer unless they provide a stable
+  HTTPS API.
+
+For Obsidian specifically, the practical first integration should be Markdown
+export from the iPhone app or backend, with optional later support for sync
+folders, share extensions, or user-selected APIs/plugins.

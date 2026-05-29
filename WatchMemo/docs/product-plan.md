@@ -40,6 +40,8 @@ The first MVP is optimized for an individual user, not a large enterprise team.
 4. Review recordings later on the iPhone as cards.
 5. Convert a recording into transcript, summary, and action items.
 6. Search across previous records.
+7. Export cleaned text to a knowledge system such as Obsidian or another notes
+   database.
 
 ## MVP Scope
 
@@ -73,6 +75,10 @@ These are intentionally out of scope for the first usable version:
 - Recording status must be obvious and trustworthy.
 - Failure states must be recoverable: unsynced recordings should not disappear.
 - Privacy and consent reminders must be clear.
+- AI output should preserve the user's original meaning while removing filler,
+  oral disfluency, and unnecessary repetition.
+- The user should see whether an item is recorded, syncing, processing, ready,
+  exported, or failed.
 
 ## First Card Model
 
@@ -90,3 +96,13 @@ Each recording card should eventually contain:
 - Freeform notes.
 - Sync and processing state.
 
+## AI Text Goal
+
+The first AI processing target is not a generic summary. It is a faithful
+cleanup pipeline:
+
+1. Transcribe the raw audio.
+2. Remove filler words, repeated starts, and speech clutter.
+3. Preserve the original meaning and uncertainty.
+4. Produce a precise note suitable for long-term storage.
+5. Optionally generate a short title, tags, action items, and a Markdown export.

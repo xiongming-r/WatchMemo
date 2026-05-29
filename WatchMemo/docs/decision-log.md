@@ -74,3 +74,28 @@ Why:
 - Phase 2 needs Watch Connectivity and an iPhone companion anyway, so a standard
   companion project is the better foundation.
 
+## 2026-05-29: Use iPhone as reliability path, not product destination
+
+Decision:
+
+The watch should eventually support direct upload to an AI ingestion service
+when network and runtime conditions allow, but the MVP should still implement
+watch-to-iPhone transfer as the primary reliability path.
+
+Why:
+
+- The core product promise is "capture anywhere and do not lose the recording."
+- Apple Watch can make HTTPS requests and background URL transfers, but watchOS
+  apps have short runtime windows and transfers may be delayed by system power
+  and scheduling decisions.
+- Watch Connectivity is designed for exchanging data and files with the paired
+  iPhone, including cases where there is no internet connection.
+- The iPhone gives us a stronger retry queue, richer review UI, easier export,
+  and better integration options for knowledge systems.
+- Direct-to-cloud upload should be added as a fast path after local recording
+  and iPhone relay are reliable.
+
+Implication:
+
+Phase 2 remains a standard iOS + watchOS companion project. Later phases should
+add a delivery queue that can support both iPhone relay and direct cloud upload.
