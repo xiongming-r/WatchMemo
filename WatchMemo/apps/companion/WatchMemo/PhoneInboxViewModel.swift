@@ -9,17 +9,20 @@ final class PhoneInboxViewModel: ObservableObject {
     @Published private(set) var statusText = "Loading inbox"
 
     private let store: PhoneInboxStore
+    private let draftStore: TranscriptDraftStore
     private let receiver: PhoneConnectivityReceiver
     private let transcriptPipeline: TranscriptPipeline
 
     init(
         store: PhoneInboxStore = PhoneInboxStore(),
+        draftStore: TranscriptDraftStore = TranscriptDraftStore(),
         transcriptPipeline: TranscriptPipeline = TranscriptPipeline(
             provider: FakeTranscriptProvider(),
             cleaner: ConservativeTranscriptCleaner()
         )
     ) {
         self.store = store
+        self.draftStore = draftStore
         self.transcriptPipeline = transcriptPipeline
         self.receiver = PhoneConnectivityReceiver(store: store)
 
@@ -31,6 +34,7 @@ final class PhoneInboxViewModel: ObservableObject {
         }
 
         reload(status: nil)
+        loadDrafts()
     }
 
     func start() {
@@ -53,6 +57,7 @@ final class PhoneInboxViewModel: ObservableObject {
                 audioFileURL: recording.fileURL,
                 hint: recording.originalFileName
             )
+            try draftStore.save(draft)
             transcriptDrafts[recording.id] = draft
             statusText = "Draft ready"
         } catch {
@@ -93,6 +98,16 @@ final class PhoneInboxViewModel: ObservableObject {
             }
         } catch {
             statusText = "Inbox load failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func loadDrafts() {
+        do {
+            transcriptDrafts = try draftStore.loadDrafts().reduce(into: [:]) { drafts, draft in
+                drafts[draft.recordingID] = draft
+            }
+        } catch {
+            statusText = "Draft load failed: \(error.localizedDescription)"
         }
     }
 }

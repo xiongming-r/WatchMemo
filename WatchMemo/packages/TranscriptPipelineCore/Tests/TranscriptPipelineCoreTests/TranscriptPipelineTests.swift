@@ -37,4 +37,59 @@ struct TranscriptPipelineTests {
         #expect(draft.cleanedText == "record the pricing idea, make it easier to review later.")
         #expect(draft.status == .cleaned)
     }
+
+    @Test("draft store persists drafts and replaces matching recording IDs")
+    func draftStorePersistsAndReplacesDrafts() throws {
+        let root = try makeTemporaryDirectory()
+        let recordingID = UUID(uuidString: "22222222-3333-4444-5555-666666666666")!
+        let first = makeDraft(
+            id: UUID(uuidString: "AAAAAAAA-0000-0000-0000-000000000001")!,
+            recordingID: recordingID,
+            cleanedText: "first cleaned text"
+        )
+        let replacement = makeDraft(
+            id: UUID(uuidString: "AAAAAAAA-0000-0000-0000-000000000002")!,
+            recordingID: recordingID,
+            cleanedText: "replacement cleaned text"
+        )
+
+        let store = TranscriptDraftStore(rootDirectory: root.appendingPathComponent("Drafts"))
+        try store.save(first)
+        try store.save(replacement)
+
+        let reloadedStore = TranscriptDraftStore(rootDirectory: root.appendingPathComponent("Drafts"))
+        let reloaded = try reloadedStore.loadDrafts()
+
+        #expect(reloaded == [replacement])
+    }
+
+    @Test("provider configuration defines fake provider boundary")
+    func providerConfigurationDefinesFakeBoundary() {
+        let configuration = ProviderConfiguration.fake
+
+        #expect(configuration.kind == .fake)
+        #expect(configuration.displayName == "Fake local provider")
+        #expect(configuration.endpointURL == nil)
+        #expect(configuration.model == nil)
+        #expect(configuration.commandPath == nil)
+    }
+
+    private func makeDraft(id: UUID, recordingID: UUID, cleanedText: String) -> TranscriptDraft {
+        TranscriptDraft(
+            id: id,
+            recordingID: recordingID,
+            rawText: "raw \(cleanedText)",
+            cleanedText: cleanedText,
+            removedFillers: ["嗯"],
+            createdAt: Date(timeIntervalSince1970: 1_778_910_000),
+            status: .cleaned
+        )
+    }
+
+    private func makeTemporaryDirectory() throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("TranscriptPipelineTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
 }

@@ -25,6 +25,8 @@
 		B20000000000000000000020 /* TranscriptCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000038 /* TranscriptCleaner.swift */; };
 		B20000000000000000000039 /* FakeTranscriptProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000003A /* FakeTranscriptProvider.swift */; };
 		B2000000000000000000003B /* TranscriptPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000003C /* TranscriptPipeline.swift */; };
+		B2000000000000000000003D /* TranscriptDraftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000003E /* TranscriptDraftStore.swift */; };
+		B2000000000000000000003F /* ProviderConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000004A /* ProviderConfiguration.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +50,8 @@
 		B20000000000000000000038 /* TranscriptCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptCleaner.swift; sourceTree = "<group>"; };
 		B2000000000000000000003A /* FakeTranscriptProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeTranscriptProvider.swift; sourceTree = "<group>"; };
 		B2000000000000000000003C /* TranscriptPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptPipeline.swift; sourceTree = "<group>"; };
+		B2000000000000000000003E /* TranscriptDraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptDraftStore.swift; sourceTree = "<group>"; };
+		B2000000000000000000004A /* ProviderConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderConfiguration.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +111,8 @@
 				B20000000000000000000038 /* TranscriptCleaner.swift */,
 				B2000000000000000000003A /* FakeTranscriptProvider.swift */,
 				B2000000000000000000003C /* TranscriptPipeline.swift */,
+				B2000000000000000000003E /* TranscriptDraftStore.swift */,
+				B2000000000000000000004A /* ProviderConfiguration.swift */,
 			);
 			path = ../../packages/TranscriptPipelineCore/Sources/TranscriptPipelineCore;
 			sourceTree = "<group>";
@@ -241,6 +247,8 @@
 				B20000000000000000000020 /* TranscriptCleaner.swift in Sources */,
 				B20000000000000000000039 /* FakeTranscriptProvider.swift in Sources */,
 				B2000000000000000000003B /* TranscriptPipeline.swift in Sources */,
+				B2000000000000000000003D /* TranscriptDraftStore.swift in Sources */,
+				B2000000000000000000003F /* ProviderConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

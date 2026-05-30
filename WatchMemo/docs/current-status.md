@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 12:10 Asia/Shanghai
+Last updated: 2026-05-30 12:36 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,11 +8,11 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-4-local-transcript-pipeline.md`
+- `docs/phase-logs/phase-5-transcript-persistence-provider-boundary.md`
 
 Next active phase:
 
-- Real provider integration and transcript persistence, while real paired-device
+- Real provider adapter design and implementation, while real paired-device
   WatchConnectivity validation remains deferred.
 
 ## Product Direction
@@ -45,7 +45,10 @@ Continue with provider and persistence work:
   watch.
 - The local transcript pipeline can create raw and cleaned drafts with a fake
   provider.
-- Next, persist transcript drafts and add a real provider boundary.
+- Transcript drafts now persist locally and reload on app startup.
+- Provider configuration now defines fake, OpenAI-compatible, and local command
+  provider kinds.
+- Next, design and implement the first real provider adapter.
 - Real WatchConnectivity file transfer still requires paired hardware later.
 
 ## Guardrails
@@ -84,3 +87,5 @@ Continue with provider and persistence work:
   and watchOS build passed.
 - 2026-05-30: Added Phase 4 local transcript pipeline with fake provider,
   conservative filler cleanup, transcript draft UI action, and package tests.
+- 2026-05-30: Added Phase 5 transcript draft persistence and provider
+  configuration boundary. Drafts now survive app restart in the iPhone app.

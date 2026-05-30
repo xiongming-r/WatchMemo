@@ -68,6 +68,10 @@ swift test --package-path WatchMemo/packages/TranscriptPipelineCore
 The package tests cover conservative filler cleanup and draft generation with a
 fake provider. This does not call a real speech-to-text or AI API.
 
+Transcript drafts are persisted by `TranscriptDraftStore` to
+`transcript-drafts.json`. Saving a draft replaces the prior draft for the same
+recording ID.
+
 ## iPhone Simulated Import
 
 In Debug builds of the `WatchMemo` iPhone app, the toolbar import button
@@ -80,6 +84,10 @@ real Apple Watch + iPhone pair.
 Each imported row also has a Debug-friendly transcript action. For now it uses
 `FakeTranscriptProvider` and `ConservativeTranscriptCleaner` to create a local
 draft without network access.
+
+Generated drafts are saved locally and loaded again when the iPhone app starts.
+The provider configuration boundary exists in code, but there is not yet a
+settings UI or real API adapter.
 
 ## Companion Debug Recording Self-Test
 
