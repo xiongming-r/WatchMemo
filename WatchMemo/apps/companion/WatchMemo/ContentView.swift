@@ -21,9 +21,16 @@ struct ContentView: View {
                     ForEach(inbox.recordings) { recording in
                         RecordingRow(
                             recording: recording,
+                            draft: inbox.transcriptDrafts[recording.id],
                             isPlaying: playback.playingID == recording.id,
+                            isProcessingTranscript: inbox.processingTranscriptIDs.contains(recording.id),
                             onPlayTapped: {
                                 playback.toggle(recording: recording)
+                            },
+                            onTranscriptTapped: {
+                                Task {
+                                    await inbox.processTranscript(for: recording)
+                                }
                             }
                         )
                     }
@@ -48,11 +55,14 @@ struct ContentView: View {
 
 private struct RecordingRow: View {
     let recording: InboxRecording
+    let draft: TranscriptDraft?
     let isPlaying: Bool
+    let isProcessingTranscript: Bool
     let onPlayTapped: () -> Void
+    let onTranscriptTapped: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .top, spacing: 12) {
             Button(action: onPlayTapped) {
                 Image(systemName: isPlaying ? "stop.fill" : "play.fill")
                     .frame(width: 28, height: 28)
@@ -71,6 +81,29 @@ private struct RecordingRow: View {
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+                if let draft {
+                    Text(draft.cleanedText)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 2)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            if isProcessingTranscript {
+                ProgressView()
+                    .controlSize(.small)
+                    .frame(width: 28, height: 28)
+            } else {
+                Button(action: onTranscriptTapped) {
+                    Image(systemName: draft == nil ? "sparkles" : "arrow.triangle.2.circlepath")
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(draft == nil ? "Create draft" : "Refresh draft")
             }
         }
         .padding(.vertical, 4)

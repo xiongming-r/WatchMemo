@@ -21,6 +21,10 @@
 		B2000000000000000000001C /* AudioPlaybackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002E /* AudioPlaybackController.swift */; };
 		B2000000000000000000001D /* InboxRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002F /* InboxRecording.swift */; };
 		B2000000000000000000001E /* PhoneInboxStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000030 /* PhoneInboxStore.swift */; };
+		B2000000000000000000001F /* TranscriptDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000037 /* TranscriptDraft.swift */; };
+		B20000000000000000000020 /* TranscriptCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000038 /* TranscriptCleaner.swift */; };
+		B20000000000000000000039 /* FakeTranscriptProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000003A /* FakeTranscriptProvider.swift */; };
+		B2000000000000000000003B /* TranscriptPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000003C /* TranscriptPipeline.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +44,10 @@
 		B2000000000000000000002E /* AudioPlaybackController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackController.swift; sourceTree = "<group>"; };
 		B2000000000000000000002F /* InboxRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxRecording.swift; sourceTree = "<group>"; };
 		B20000000000000000000030 /* PhoneInboxStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneInboxStore.swift; sourceTree = "<group>"; };
+		B20000000000000000000037 /* TranscriptDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptDraft.swift; sourceTree = "<group>"; };
+		B20000000000000000000038 /* TranscriptCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptCleaner.swift; sourceTree = "<group>"; };
+		B2000000000000000000003A /* FakeTranscriptProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeTranscriptProvider.swift; sourceTree = "<group>"; };
+		B2000000000000000000003C /* TranscriptPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptPipeline.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +73,7 @@
 			children = (
 				B20000000000000000000003 /* WatchMemo */,
 				B20000000000000000000008 /* PhoneInboxCore */,
+				B20000000000000000000009 /* TranscriptPipelineCore */,
 				B20000000000000000000004 /* WatchMemoWatch */,
 				B20000000000000000000005 /* Products */,
 			);
@@ -89,6 +98,17 @@
 				B20000000000000000000030 /* PhoneInboxStore.swift */,
 			);
 			path = ../../packages/PhoneInboxCore/Sources/PhoneInboxCore;
+			sourceTree = "<group>";
+		};
+		B20000000000000000000009 /* TranscriptPipelineCore */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000037 /* TranscriptDraft.swift */,
+				B20000000000000000000038 /* TranscriptCleaner.swift */,
+				B2000000000000000000003A /* FakeTranscriptProvider.swift */,
+				B2000000000000000000003C /* TranscriptPipeline.swift */,
+			);
+			path = ../../packages/TranscriptPipelineCore/Sources/TranscriptPipelineCore;
 			sourceTree = "<group>";
 		};
 		B20000000000000000000004 /* WatchMemoWatch */ = {
@@ -217,6 +237,10 @@
 				B2000000000000000000001C /* AudioPlaybackController.swift in Sources */,
 				B2000000000000000000001D /* InboxRecording.swift in Sources */,
 				B2000000000000000000001E /* PhoneInboxStore.swift in Sources */,
+				B2000000000000000000001F /* TranscriptDraft.swift in Sources */,
+				B20000000000000000000020 /* TranscriptCleaner.swift in Sources */,
+				B20000000000000000000039 /* FakeTranscriptProvider.swift in Sources */,
+				B2000000000000000000003B /* TranscriptPipeline.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

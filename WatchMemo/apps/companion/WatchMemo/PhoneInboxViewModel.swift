@@ -4,13 +4,23 @@ import Foundation
 @MainActor
 final class PhoneInboxViewModel: ObservableObject {
     @Published private(set) var recordings: [InboxRecording] = []
+    @Published private(set) var transcriptDrafts: [InboxRecording.ID: TranscriptDraft] = [:]
+    @Published private(set) var processingTranscriptIDs: Set<InboxRecording.ID> = []
     @Published private(set) var statusText = "Loading inbox"
 
     private let store: PhoneInboxStore
     private let receiver: PhoneConnectivityReceiver
+    private let transcriptPipeline: TranscriptPipeline
 
-    init(store: PhoneInboxStore = PhoneInboxStore()) {
+    init(
+        store: PhoneInboxStore = PhoneInboxStore(),
+        transcriptPipeline: TranscriptPipeline = TranscriptPipeline(
+            provider: FakeTranscriptProvider(),
+            cleaner: ConservativeTranscriptCleaner()
+        )
+    ) {
         self.store = store
+        self.transcriptPipeline = transcriptPipeline
         self.receiver = PhoneConnectivityReceiver(store: store)
 
         receiver.onImported = { [weak self] _ in
@@ -25,6 +35,29 @@ final class PhoneInboxViewModel: ObservableObject {
 
     func start() {
         receiver.start()
+    }
+
+    func processTranscript(for recording: InboxRecording) async {
+        guard !processingTranscriptIDs.contains(recording.id) else {
+            return
+        }
+
+        processingTranscriptIDs.insert(recording.id)
+        defer {
+            processingTranscriptIDs.remove(recording.id)
+        }
+
+        do {
+            let draft = try await transcriptPipeline.makeDraft(
+                recordingID: recording.id,
+                audioFileURL: recording.fileURL,
+                hint: recording.originalFileName
+            )
+            transcriptDrafts[recording.id] = draft
+            statusText = "Draft ready"
+        } catch {
+            statusText = "Draft failed: \(error.localizedDescription)"
+        }
     }
 
 #if DEBUG

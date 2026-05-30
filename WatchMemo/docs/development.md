@@ -57,6 +57,17 @@ swift test --package-path WatchMemo/packages/PhoneInboxCore
 The package tests cover copying imported audio into the inbox, persisting
 metadata, reloading the manifest, and replacing duplicate IDs.
 
+## Transcript Pipeline Core Tests
+
+The local transcript pipeline is available as a separate Swift package:
+
+```sh
+swift test --package-path WatchMemo/packages/TranscriptPipelineCore
+```
+
+The package tests cover conservative filler cleanup and draft generation with a
+fake provider. This does not call a real speech-to-text or AI API.
+
 ## iPhone Simulated Import
 
 In Debug builds of the `WatchMemo` iPhone app, the toolbar import button
@@ -65,6 +76,10 @@ used by WatchConnectivity.
 
 This lets us validate the iPhone-side list, persistence, and playback without a
 real Apple Watch + iPhone pair.
+
+Each imported row also has a Debug-friendly transcript action. For now it uses
+`FakeTranscriptProvider` and `ConservativeTranscriptCleaner` to create a local
+draft without network access.
 
 ## Companion Debug Recording Self-Test
 

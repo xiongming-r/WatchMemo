@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 11:55 Asia/Shanghai
+Last updated: 2026-05-30 12:10 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,11 +8,11 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-3-phone-inbox-simulated-import.md`
+- `docs/phase-logs/phase-4-local-transcript-pipeline.md`
 
 Next active phase:
 
-- Local AI transcription and cleanup pipeline, while real paired-device
+- Real provider integration and transcript persistence, while real paired-device
   WatchConnectivity validation remains deferred.
 
 ## Product Direction
@@ -38,13 +38,14 @@ The iPhone app and backend will later handle:
 
 ## Next Concrete Action
 
-Continue with locally testable AI pipeline work:
+Continue with provider and persistence work:
 
 - The iPhone inbox now persists imported recordings.
 - Debug builds can generate and import a local sample audio file without a real
   watch.
-- Next, add transcript draft models and fake-provider tests before wiring a real
-  AI/transcription provider.
+- The local transcript pipeline can create raw and cleaned drafts with a fake
+  provider.
+- Next, persist transcript drafts and add a real provider boundary.
 - Real WatchConnectivity file transfer still requires paired hardware later.
 
 ## Guardrails
@@ -81,3 +82,5 @@ Continue with locally testable AI pipeline work:
 - 2026-05-30: Added Phase 3 iPhone inbox core with Swift package tests, Debug
   simulated import, persisted iOS inbox, and playback. `swift test`, iOS build,
   and watchOS build passed.
+- 2026-05-30: Added Phase 4 local transcript pipeline with fake provider,
+  conservative filler cleanup, transcript draft UI action, and package tests.
