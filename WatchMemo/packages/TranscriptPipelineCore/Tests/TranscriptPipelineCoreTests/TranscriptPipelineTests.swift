@@ -74,6 +74,75 @@ struct TranscriptPipelineTests {
         #expect(configuration.commandPath == nil)
     }
 
+    @Test("OpenAI compatible provider sends audio transcription request and parses text")
+    func openAICompatibleProviderSendsRequestAndParsesText() async throws {
+        let root = try makeTemporaryDirectory()
+        let audioURL = root.appendingPathComponent("sample.m4a")
+        try Data("audio-bytes".utf8).write(to: audioURL)
+        let client = CapturingTranscriptHTTPClient(
+            response: HTTPURLResponse(
+                url: URL(string: "https://api.example.com/v1/audio/transcriptions")!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!,
+            data: Data(#"{"text":"今天会议决定先做手表录音。"}"#.utf8)
+        )
+        let provider = OpenAICompatibleTranscriptProvider(
+            configuration: .openAICompatible(
+                endpointURL: URL(string: "https://api.example.com/v1")!,
+                model: "gpt-4o-transcribe"
+            ),
+            apiKey: "test-key",
+            httpClient: client,
+            boundary: "TEST-BOUNDARY"
+        )
+
+        let transcript = try await provider.transcribe(audioFileURL: audioURL, hint: "会议记录")
+
+        #expect(transcript == "今天会议决定先做手表录音。")
+        #expect(client.capturedRequest?.httpMethod == "POST")
+        #expect(client.capturedRequest?.url?.absoluteString == "https://api.example.com/v1/audio/transcriptions")
+        #expect(client.capturedRequest?.value(forHTTPHeaderField: "Authorization") == "Bearer test-key")
+        #expect(client.capturedRequest?.value(forHTTPHeaderField: "Content-Type") == "multipart/form-data; boundary=TEST-BOUNDARY")
+
+        let body = try #require(client.capturedBodyString)
+        #expect(body.contains(#"name="model""#))
+        #expect(body.contains("gpt-4o-transcribe"))
+        #expect(body.contains(#"name="prompt""#))
+        #expect(body.contains("会议记录"))
+        #expect(body.contains(#"name="response_format""#))
+        #expect(body.contains("json"))
+        #expect(body.contains(#"filename="sample.m4a""#))
+        #expect(body.contains("audio-bytes"))
+    }
+
+    @Test("OpenAI compatible provider throws on non-success responses")
+    func openAICompatibleProviderThrowsOnFailure() async throws {
+        let root = try makeTemporaryDirectory()
+        let audioURL = root.appendingPathComponent("sample.m4a")
+        try Data("audio-bytes".utf8).write(to: audioURL)
+        let client = CapturingTranscriptHTTPClient(
+            response: HTTPURLResponse(
+                url: URL(string: "https://api.example.com/v1/audio/transcriptions")!,
+                statusCode: 401,
+                httpVersion: nil,
+                headerFields: nil
+            )!,
+            data: Data(#"{"error":{"message":"bad key"}}"#.utf8)
+        )
+        let provider = OpenAICompatibleTranscriptProvider(
+            configuration: .openAICompatible(endpointURL: URL(string: "https://api.example.com/v1")!),
+            apiKey: "bad-key",
+            httpClient: client,
+            boundary: "TEST-BOUNDARY"
+        )
+
+        await #expect(throws: OpenAICompatibleTranscriptProviderError.self) {
+            _ = try await provider.transcribe(audioFileURL: audioURL, hint: nil)
+        }
+    }
+
     private func makeDraft(id: UUID, recordingID: UUID, cleanedText: String) -> TranscriptDraft {
         TranscriptDraft(
             id: id,
@@ -91,5 +160,27 @@ struct TranscriptPipelineTests {
             .appendingPathComponent("TranscriptPipelineTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory
+    }
+}
+
+private final class CapturingTranscriptHTTPClient: TranscriptHTTPClient {
+    let response: HTTPURLResponse
+    let data: Data
+    private(set) var capturedRequest: URLRequest?
+    private(set) var capturedBody: Data?
+
+    var capturedBodyString: String? {
+        capturedBody.flatMap { String(data: $0, encoding: .utf8) }
+    }
+
+    init(response: HTTPURLResponse, data: Data) {
+        self.response = response
+        self.data = data
+    }
+
+    func data(for request: URLRequest, body: Data) async throws -> (Data, HTTPURLResponse) {
+        capturedRequest = request
+        capturedBody = body
+        return (data, response)
     }
 }

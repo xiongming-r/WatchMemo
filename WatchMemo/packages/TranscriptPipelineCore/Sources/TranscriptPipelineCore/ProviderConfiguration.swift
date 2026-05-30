@@ -33,4 +33,16 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable, Sendable 
         kind: .fake,
         displayName: "Fake local provider"
     )
+
+    public static func openAICompatible(
+        endpointURL: URL = URL(string: "https://api.openai.com/v1")!,
+        model: String = "gpt-4o-transcribe"
+    ) -> ProviderConfiguration {
+        ProviderConfiguration(
+            kind: .openAICompatible,
+            displayName: "OpenAI-compatible remote provider",
+            endpointURL: endpointURL,
+            model: model
+        )
+    }
 }

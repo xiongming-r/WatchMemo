@@ -89,6 +89,19 @@ Generated drafts are saved locally and loaded again when the iPhone app starts.
 The provider configuration boundary exists in code, but there is not yet a
 settings UI or real API adapter.
 
+## OpenAI-Compatible Provider Adapter
+
+`OpenAICompatibleTranscriptProvider` implements the `TranscriptProvider`
+protocol by sending multipart `POST /audio/transcriptions` requests to an
+OpenAI-compatible endpoint.
+
+The adapter is unit-tested with an injectable `TranscriptHTTPClient`; package
+tests do not make network calls and do not require an API key.
+
+The iPhone app target compiles the adapter, but still defaults to
+`FakeTranscriptProvider` until secure API key storage and provider settings are
+implemented.
+
 ## Companion Debug Recording Self-Test
 
 After building and installing the companion watch app to a booted watchOS

@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 12:36 Asia/Shanghai
+Last updated: 2026-05-30 16:25 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,11 +8,11 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-5-transcript-persistence-provider-boundary.md`
+- `docs/phase-logs/phase-6-openai-compatible-provider.md`
 
 Next active phase:
 
-- Real provider adapter design and implementation, while real paired-device
+- Provider settings and secure API key handling, while real paired-device
   WatchConnectivity validation remains deferred.
 
 ## Product Direction
@@ -48,7 +48,10 @@ Continue with provider and persistence work:
 - Transcript drafts now persist locally and reload on app startup.
 - Provider configuration now defines fake, OpenAI-compatible, and local command
   provider kinds.
-- Next, design and implement the first real provider adapter.
+- An OpenAI-compatible transcription provider adapter now exists and is covered
+  by request/response tests.
+- Next, add provider settings and secure API key storage before enabling real
+  network calls from the app.
 - Real WatchConnectivity file transfer still requires paired hardware later.
 
 ## Guardrails
@@ -89,3 +92,6 @@ Continue with provider and persistence work:
   conservative filler cleanup, transcript draft UI action, and package tests.
 - 2026-05-30: Added Phase 5 transcript draft persistence and provider
   configuration boundary. Drafts now survive app restart in the iPhone app.
+- 2026-05-30: Added Phase 6 OpenAI-compatible remote transcription adapter.
+  Tests validate multipart request shape, bearer authorization, JSON response
+  parsing, and non-2xx failure handling. The app still defaults to fake provider.
