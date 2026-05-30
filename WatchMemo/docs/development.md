@@ -46,6 +46,26 @@ Validated local platforms:
 - iOS 26.3.1 Simulator Runtime downloaded through Xcode. The active SDK used by
   Xcode 26.2 for the build is iPhoneSimulator 26.2.
 
+## Phone Inbox Core Tests
+
+The iPhone inbox persistence logic is also available as a small Swift package:
+
+```sh
+swift test --package-path WatchMemo/packages/PhoneInboxCore
+```
+
+The package tests cover copying imported audio into the inbox, persisting
+metadata, reloading the manifest, and replacing duplicate IDs.
+
+## iPhone Simulated Import
+
+In Debug builds of the `WatchMemo` iPhone app, the toolbar import button
+generates a short local `.caf` audio sample and imports it into the same inbox
+used by WatchConnectivity.
+
+This lets us validate the iPhone-side list, persistence, and playback without a
+real Apple Watch + iPhone pair.
+
 ## Companion Debug Recording Self-Test
 
 After building and installing the companion watch app to a booted watchOS

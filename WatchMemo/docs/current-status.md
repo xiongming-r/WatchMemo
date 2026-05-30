@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-29 18:25 Asia/Shanghai
+Last updated: 2026-05-30 11:55 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,11 +8,12 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-2-companion-delivery.md`
+- `docs/phase-logs/phase-3-phone-inbox-simulated-import.md`
 
 Next active phase:
 
-- Real paired-device WatchConnectivity validation.
+- Local AI transcription and cleanup pipeline, while real paired-device
+  WatchConnectivity validation remains deferred.
 
 ## Product Direction
 
@@ -37,12 +38,14 @@ The iPhone app and backend will later handle:
 
 ## Next Concrete Action
 
-Validate WatchConnectivity on paired hardware:
+Continue with locally testable AI pipeline work:
 
-- The new companion project exists at `apps/companion/WatchMemo.xcodeproj`.
-- The watchOS target builds and can save a queued local recording in simulator.
-- The iOS target builds after installing the iOS Simulator platform.
-- Real WatchConnectivity file transfer still requires paired hardware.
+- The iPhone inbox now persists imported recordings.
+- Debug builds can generate and import a local sample audio file without a real
+  watch.
+- Next, add transcript draft models and fake-provider tests before wiring a real
+  AI/transcription provider.
+- Real WatchConnectivity file transfer still requires paired hardware later.
 
 ## Guardrails
 
@@ -75,3 +78,6 @@ Validate WatchConnectivity on paired hardware:
 - 2026-05-29: Added Phase 2 companion project with watch recording queue and
   WatchConnectivity relay stub. watchOS and iOS builds passed; simulator
   autotest created an `.m4a` and `recordings.json`.
+- 2026-05-30: Added Phase 3 iPhone inbox core with Swift package tests, Debug
+  simulated import, persisted iOS inbox, and playback. `swift test`, iOS build,
+  and watchOS build passed.

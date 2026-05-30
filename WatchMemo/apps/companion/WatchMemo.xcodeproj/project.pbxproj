@@ -17,6 +17,10 @@
 		B20000000000000000000018 /* RecorderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* RecorderViewModel.swift */; };
 		B20000000000000000000019 /* IPhoneRelayTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002B /* IPhoneRelayTransport.swift */; };
 		B2000000000000000000001A /* PhoneConnectivityReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002C /* PhoneConnectivityReceiver.swift */; };
+		B2000000000000000000001B /* PhoneInboxViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002D /* PhoneInboxViewModel.swift */; };
+		B2000000000000000000001C /* AudioPlaybackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002E /* AudioPlaybackController.swift */; };
+		B2000000000000000000001D /* InboxRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002F /* InboxRecording.swift */; };
+		B2000000000000000000001E /* PhoneInboxStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000030 /* PhoneInboxStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +36,10 @@
 		B2000000000000000000002A /* RecorderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderViewModel.swift; sourceTree = "<group>"; };
 		B2000000000000000000002B /* IPhoneRelayTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPhoneRelayTransport.swift; sourceTree = "<group>"; };
 		B2000000000000000000002C /* PhoneConnectivityReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneConnectivityReceiver.swift; sourceTree = "<group>"; };
+		B2000000000000000000002D /* PhoneInboxViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneInboxViewModel.swift; sourceTree = "<group>"; };
+		B2000000000000000000002E /* AudioPlaybackController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackController.swift; sourceTree = "<group>"; };
+		B2000000000000000000002F /* InboxRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxRecording.swift; sourceTree = "<group>"; };
+		B20000000000000000000030 /* PhoneInboxStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneInboxStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +64,7 @@
 			isa = PBXGroup;
 			children = (
 				B20000000000000000000003 /* WatchMemo */,
+				B20000000000000000000008 /* PhoneInboxCore */,
 				B20000000000000000000004 /* WatchMemoWatch */,
 				B20000000000000000000005 /* Products */,
 			);
@@ -67,8 +76,19 @@
 				B20000000000000000000021 /* WatchMemoApp.swift */,
 				B20000000000000000000022 /* ContentView.swift */,
 				B2000000000000000000002C /* PhoneConnectivityReceiver.swift */,
+				B2000000000000000000002D /* PhoneInboxViewModel.swift */,
+				B2000000000000000000002E /* AudioPlaybackController.swift */,
 			);
 			path = WatchMemo;
+			sourceTree = "<group>";
+		};
+		B20000000000000000000008 /* PhoneInboxCore */ = {
+			isa = PBXGroup;
+			children = (
+				B2000000000000000000002F /* InboxRecording.swift */,
+				B20000000000000000000030 /* PhoneInboxStore.swift */,
+			);
+			path = ../../packages/PhoneInboxCore/Sources/PhoneInboxCore;
 			sourceTree = "<group>";
 		};
 		B20000000000000000000004 /* WatchMemoWatch */ = {
@@ -193,6 +213,10 @@
 				B20000000000000000000011 /* WatchMemoApp.swift in Sources */,
 				B20000000000000000000012 /* ContentView.swift in Sources */,
 				B2000000000000000000001A /* PhoneConnectivityReceiver.swift in Sources */,
+				B2000000000000000000001B /* PhoneInboxViewModel.swift in Sources */,
+				B2000000000000000000001C /* AudioPlaybackController.swift in Sources */,
+				B2000000000000000000001D /* InboxRecording.swift in Sources */,
+				B2000000000000000000001E /* PhoneInboxStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

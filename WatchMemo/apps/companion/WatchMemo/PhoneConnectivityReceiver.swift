@@ -1,73 +1,66 @@
 import Foundation
 import WatchConnectivity
 
-struct ReceivedRecording: Identifiable, Equatable {
-    let id: UUID
-    let fileName: String
-    let receivedAt: Date
-    let durationSeconds: TimeInterval?
-}
-
 @MainActor
-final class PhoneConnectivityReceiver: NSObject, ObservableObject {
-    @Published private(set) var receivedRecordings: [ReceivedRecording] = []
-    @Published private(set) var statusText = "Waiting for watch"
+final class PhoneConnectivityReceiver: NSObject {
+    var onImported: ((InboxRecording) -> Void)?
+    var onStatusChange: ((String) -> Void)?
 
-    private let fileManager: FileManager
-    private let inboxDirectory: URL
+    private let store: PhoneInboxStore
 
-    init(fileManager: FileManager = .default) {
-        self.fileManager = fileManager
-        self.inboxDirectory = fileManager
-            .urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Inbox", isDirectory: true)
+    init(store: PhoneInboxStore) {
+        self.store = store
         super.init()
     }
 
     func start() {
         guard WCSession.isSupported() else {
-            statusText = "Watch Connectivity unavailable"
+            updateStatus("Watch Connectivity unavailable")
             return
         }
 
         let session = WCSession.default
         session.delegate = self
         session.activate()
-        statusText = "Connecting to watch"
+        updateStatus("Connecting to watch")
     }
 
     private func receive(file: WCSessionFile) {
         do {
-            try ensureInboxExists()
-
             let fileName = (file.metadata?["fileName"] as? String) ?? file.fileURL.lastPathComponent
-            let destination = inboxDirectory.appendingPathComponent(fileName)
-
-            if fileManager.fileExists(atPath: destination.path) {
-                try fileManager.removeItem(at: destination)
-            }
-
-            try fileManager.copyItem(at: file.fileURL, to: destination)
-
-            let received = ReceivedRecording(
+            let metadata = InboxImportMetadata(
                 id: UUID(uuidString: file.metadata?["recordingID"] as? String ?? "") ?? UUID(),
-                fileName: fileName,
-                receivedAt: Date(),
-                durationSeconds: file.metadata?["durationSeconds"] as? TimeInterval
+                originalFileName: fileName,
+                createdAt: createdAt(from: file.metadata),
+                durationSeconds: duration(from: file.metadata),
+                source: .watchConnectivity
             )
-            receivedRecordings.insert(received, at: 0)
-            statusText = "Received \(receivedRecordings.count) recording\(receivedRecordings.count == 1 ? "" : "s")"
+            let imported = try store.importRecording(fileURL: file.fileURL, metadata: metadata)
+            onImported?(imported)
+            updateStatus("Received \(fileName)")
         } catch {
-            statusText = "Receive failed: \(error.localizedDescription)"
+            updateStatus("Receive failed: \(error.localizedDescription)")
         }
     }
 
-    private func ensureInboxExists() throws {
-        guard !fileManager.fileExists(atPath: inboxDirectory.path) else {
-            return
+    private func updateStatus(_ text: String) {
+        onStatusChange?(text)
+    }
+
+    private func createdAt(from metadata: [String: Any]?) -> Date {
+        guard let interval = metadata?["createdAt"] as? TimeInterval else {
+            return Date()
         }
 
-        try fileManager.createDirectory(at: inboxDirectory, withIntermediateDirectories: true)
+        return Date(timeIntervalSince1970: interval)
+    }
+
+    private func duration(from metadata: [String: Any]?) -> TimeInterval {
+        guard let duration = metadata?["durationSeconds"] as? TimeInterval else {
+            return 0
+        }
+
+        return duration
     }
 }
 
@@ -79,9 +72,9 @@ extension PhoneConnectivityReceiver: WCSessionDelegate {
     ) {
         Task { @MainActor in
             if let error {
-                statusText = "Connection failed: \(error.localizedDescription)"
+                updateStatus("Connection failed: \(error.localizedDescription)")
             } else {
-                statusText = activationState == .activated ? "Ready for watch" : "Waiting for watch"
+                updateStatus(activationState == .activated ? "Ready for watch" : "Waiting for watch")
             }
         }
     }
