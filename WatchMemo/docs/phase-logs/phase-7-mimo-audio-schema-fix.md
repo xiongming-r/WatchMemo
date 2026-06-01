@@ -49,3 +49,20 @@ swift test --package-path WatchMemo/packages/TranscriptPipelineCore
   appears in the inbox row.
 - If another provider error appears, use the new copy button and paste the exact
   status text back into the development thread.
+
+## Follow-Up: Stale Inbox File URLs
+
+The next real-device validation failed before reaching the provider:
+
+```text
+Draft failed: The file "84C028CD-2765-47D0-B8E2-AC35B37A9190.m4a" couldn't be opened because there is no such file.
+```
+
+Root cause: persisted `InboxRecording.fileURL` values were absolute sandbox
+paths. Development installs can change the app container path while preserving
+Documents content, so a manifest record can point at an old container. The
+durable identity is `storedFileName`, not the absolute URL.
+
+Fix: `PhoneInboxStore.loadRecordings()` now rebuilds each `fileURL` from the
+current inbox `Audio/` directory plus `storedFileName`. A regression test covers
+loading a manifest copied from an old container root into a new one.

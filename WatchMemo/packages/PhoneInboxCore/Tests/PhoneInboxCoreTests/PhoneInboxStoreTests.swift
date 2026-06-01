@@ -80,6 +80,44 @@ struct PhoneInboxStoreTests {
         #expect(try Data(contentsOf: imported.fileURL) == Data("second".utf8))
     }
 
+    @Test("loading recordings rebuilds file URLs for the current inbox root")
+    func loadRecordingsRebuildsFileURLsForCurrentRoot() throws {
+        let root = try makeTemporaryDirectory()
+        let source = root.appendingPathComponent("source.m4a")
+        try Data("sample audio".utf8).write(to: source)
+
+        let oldRoot = root.appendingPathComponent("OldContainer")
+        let newRoot = root.appendingPathComponent("NewContainer")
+        let oldStore = PhoneInboxStore(rootDirectory: oldRoot)
+        let imported = try oldStore.importRecording(
+            fileURL: source,
+            metadata: InboxImportMetadata(
+                id: UUID(uuidString: "84C028CD-2765-47D0-B8E2-AC35B37A9190")!,
+                originalFileName: "sample.m4a",
+                createdAt: Date(timeIntervalSince1970: 1_778_920_000),
+                durationSeconds: 0.8,
+                source: .simulatedImport
+            )
+        )
+
+        try FileManager.default.createDirectory(at: newRoot, withIntermediateDirectories: true)
+        try FileManager.default.copyItem(
+            at: oldRoot.appendingPathComponent("recordings.json"),
+            to: newRoot.appendingPathComponent("recordings.json")
+        )
+        try FileManager.default.copyItem(
+            at: oldRoot.appendingPathComponent("Audio", isDirectory: true),
+            to: newRoot.appendingPathComponent("Audio", isDirectory: true)
+        )
+
+        let reloaded = try PhoneInboxStore(rootDirectory: newRoot).loadRecordings()
+
+        #expect(reloaded.count == 1)
+        #expect(reloaded.first?.storedFileName == imported.storedFileName)
+        #expect(reloaded.first?.fileURL == newRoot.appendingPathComponent("Audio").appendingPathComponent(imported.storedFileName))
+        #expect(FileManager.default.fileExists(atPath: reloaded.first?.fileURL.path ?? ""))
+    }
+
     private func makeTemporaryDirectory() throws -> URL {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("PhoneInboxStoreTests-\(UUID().uuidString)", isDirectory: true)

@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-01 12:00 Asia/Shanghai
+Last updated: 2026-06-01 13:55 Asia/Shanghai
 
 ## Current Phase
 
@@ -62,6 +62,8 @@ Continue with provider and persistence work:
   shape and defaults to `mimo-v2.5`.
 - The iPhone status/error area now has a one-tap copy button for sharing
   provider errors during real-device testing.
+- Inbox recordings now rebuild their audio file URLs from the current app
+  container on load, avoiding stale absolute paths after development installs.
 - Phase 7 is not complete until the user validates on real hardware.
 
 ## Guardrails
@@ -115,3 +117,7 @@ Continue with provider and persistence work:
   test returned `No endpoints found that support image input`. The app now
   sends `data:audio/m4a;base64,...`, removes the separate `format` field,
   parses `reasoning_content` fallback, and defaults to `mimo-v2.5`.
+- 2026-06-01: Fixed a real-device file lookup failure after reinstall/update:
+  persisted inbox records may contain stale absolute `fileURL` container paths,
+  so `PhoneInboxStore.loadRecordings()` now rebuilds `fileURL` from
+  `storedFileName` and the current inbox root.

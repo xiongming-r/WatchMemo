@@ -61,11 +61,26 @@ public final class PhoneInboxStore {
         }
 
         let data = try Data(contentsOf: manifestURL)
-        return try JSONDecoder().decode([InboxRecording].self, from: data)
+        let recordings = try JSONDecoder().decode([InboxRecording].self, from: data)
+        return recordings.map(recordingWithCurrentFileURL)
     }
 
     private func ensureDirectoriesExist() throws {
         try fileManager.createDirectory(at: audioDirectory, withIntermediateDirectories: true)
+    }
+
+    private func recordingWithCurrentFileURL(_ recording: InboxRecording) -> InboxRecording {
+        InboxRecording(
+            id: recording.id,
+            originalFileName: recording.originalFileName,
+            storedFileName: recording.storedFileName,
+            createdAt: recording.createdAt,
+            importedAt: recording.importedAt,
+            durationSeconds: recording.durationSeconds,
+            source: recording.source,
+            status: recording.status,
+            fileURL: audioDirectory.appendingPathComponent(recording.storedFileName)
+        )
     }
 
     private func save(_ recordings: [InboxRecording]) throws {
