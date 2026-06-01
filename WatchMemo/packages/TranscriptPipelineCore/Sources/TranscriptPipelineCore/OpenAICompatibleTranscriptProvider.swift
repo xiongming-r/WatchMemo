@@ -44,21 +44,25 @@ public enum OpenAICompatibleTranscriptProviderError: LocalizedError, Equatable {
 }
 
 public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
+    public static let defaultNoteInstruction = """
+    请理解这段录音，在不改变原意的前提下，去除语气词、重复表达和明显口误，输出一段适合记录到知识库的中文文本。只输出整理后的正文。
+    """
+
     private let configuration: ProviderConfiguration
     private let apiKey: String
     private let httpClient: any TranscriptHTTPClient
-    private let boundary: String
+    private let noteInstruction: String
 
     public init(
         configuration: ProviderConfiguration,
         apiKey: String,
         httpClient: any TranscriptHTTPClient = URLSessionTranscriptHTTPClient(),
-        boundary: String = "WatchMemo-\(UUID().uuidString)"
+        noteInstruction: String = OpenAICompatibleTranscriptProvider.defaultNoteInstruction
     ) {
         self.configuration = configuration
         self.apiKey = apiKey
         self.httpClient = httpClient
-        self.boundary = boundary
+        self.noteInstruction = noteInstruction
     }
 
     public func transcribe(audioFileURL: URL, hint: String?) async throws -> String {
@@ -67,16 +71,16 @@ public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
             throw OpenAICompatibleTranscriptProviderError.invalidConfiguration
         }
 
-        let model = configuration.model ?? "gpt-4o-transcribe"
+        let model = configuration.model ?? "mimo-v2.5-pro"
         let requestURL = endpointURL
-            .appendingPathComponent("audio")
-            .appendingPathComponent("transcriptions")
+            .appendingPathComponent("chat")
+            .appendingPathComponent("completions")
         var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body = try makeMultipartBody(
+        let body = try makeChatCompletionBody(
             audioFileURL: audioFileURL,
             model: model,
             hint: hint
@@ -97,40 +101,37 @@ public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
         return text
     }
 
-    private func makeMultipartBody(audioFileURL: URL, model: String, hint: String?) throws -> Data {
-        var body = Data()
-
-        appendField(name: "model", value: model, to: &body)
-        appendField(name: "response_format", value: "json", to: &body)
-
-        if let hint, !hint.isEmpty {
-            appendField(name: "prompt", value: hint, to: &body)
-        }
-
-        let fileName = audioFileURL.lastPathComponent
+    private func makeChatCompletionBody(audioFileURL: URL, model: String, hint: String?) throws -> Data {
         let fileData = try Data(contentsOf: audioFileURL)
-        appendFile(name: "file", fileName: fileName, data: fileData, to: &body)
-        body.appendString("--\(boundary)--\r\n")
-        return body
-    }
+        let format = audioFileURL.pathExtension.lowercased().isEmpty
+            ? "m4a"
+            : audioFileURL.pathExtension.lowercased()
+        let userText = [
+            "录音线索：\(hint ?? audioFileURL.lastPathComponent)",
+            "请根据音频内容生成最终记录文本。"
+        ].joined(separator: "\n")
 
-    private func appendField(name: String, value: String, to body: inout Data) {
-        body.appendString("--\(boundary)\r\n")
-        body.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n")
-        body.appendString("\(value)\r\n")
-    }
+        let payload = ChatCompletionRequest(
+            model: model,
+            messages: [
+                ChatMessage(role: "system", content: .text(noteInstruction)),
+                ChatMessage(
+                    role: "user",
+                    content: .parts([
+                        .text(userText),
+                        .inputAudio(data: fileData.base64EncodedString(), format: format)
+                    ])
+                )
+            ],
+            temperature: 0.1
+        )
 
-    private func appendFile(name: String, fileName: String, data: Data, to body: inout Data) {
-        body.appendString("--\(boundary)\r\n")
-        body.appendString("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\r\n")
-        body.appendString("Content-Type: application/octet-stream\r\n\r\n")
-        body.append(data)
-        body.appendString("\r\n")
+        return try JSONEncoder().encode(payload)
     }
 
     private func transcriptText(from data: Data) throws -> String? {
-        let response = try JSONDecoder().decode(TranscriptionResponse.self, from: data)
-        return response.text
+        let response = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+        return response.choices.first?.message.content
     }
 
     private func errorMessage(from data: Data) -> String {
@@ -142,8 +143,66 @@ public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
     }
 }
 
-private struct TranscriptionResponse: Decodable {
+private struct ChatCompletionRequest: Encodable {
+    let model: String
+    let messages: [ChatMessage]
+    let temperature: Double
+}
+
+private struct ChatMessage: Encodable {
+    let role: String
+    let content: ChatContent
+}
+
+private enum ChatContent: Encodable {
+    case text(String)
+    case parts([ChatContentPart])
+
+    func encode(to encoder: Encoder) throws {
+        switch self {
+        case .text(let text):
+            var container = encoder.singleValueContainer()
+            try container.encode(text)
+        case .parts(let parts):
+            var container = encoder.singleValueContainer()
+            try container.encode(parts)
+        }
+    }
+}
+
+private struct ChatContentPart: Encodable {
+    let type: String
     let text: String?
+    let input_audio: InputAudio?
+
+    static func text(_ text: String) -> ChatContentPart {
+        ChatContentPart(type: "text", text: text, input_audio: nil)
+    }
+
+    static func inputAudio(data: String, format: String) -> ChatContentPart {
+        ChatContentPart(
+            type: "input_audio",
+            text: nil,
+            input_audio: InputAudio(data: data, format: format)
+        )
+    }
+}
+
+private struct InputAudio: Encodable {
+    let data: String
+    let format: String
+}
+
+private struct ChatCompletionResponse: Decodable {
+    struct Choice: Decodable {
+        struct Message: Decodable {
+            let content: String?
+        }
+
+        let message: Message
+    }
+
+    let choices: [Choice]
 }
 
 private struct ErrorResponse: Decodable {
@@ -152,10 +211,4 @@ private struct ErrorResponse: Decodable {
     }
 
     let error: ProviderError
-}
-
-private extension Data {
-    mutating func appendString(_ string: String) {
-        append(Data(string.utf8))
-    }
 }

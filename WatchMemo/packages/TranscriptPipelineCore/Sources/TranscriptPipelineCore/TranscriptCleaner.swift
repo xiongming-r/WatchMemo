@@ -4,6 +4,18 @@ public protocol TranscriptCleaning {
     func clean(_ rawText: String) -> TranscriptCleanupResult
 }
 
+public struct PassthroughTranscriptCleaner: TranscriptCleaning {
+    public init() {}
+
+    public func clean(_ rawText: String) -> TranscriptCleanupResult {
+        TranscriptCleanupResult(
+            originalText: rawText,
+            cleanedText: rawText.trimmingCharacters(in: .whitespacesAndNewlines),
+            removedFillers: []
+        )
+    }
+}
+
 public struct ConservativeTranscriptCleaner: TranscriptCleaning {
     private let fillers: [String]
 

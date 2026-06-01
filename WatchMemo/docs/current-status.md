@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-01 10:15 Asia/Shanghai
+Last updated: 2026-06-01 11:25 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,7 +8,7 @@ Phase 0 is complete.
 
 Latest local checkpoint:
 
-- `docs/phase-logs/phase-7-real-api-device-validation.md`
+- `docs/phase-logs/phase-7-audio-understanding-adjustment.md`
 
 Latest fully completed checkpoint:
 
@@ -17,7 +17,7 @@ Latest fully completed checkpoint:
 Next active phase:
 
 - Real iPhone + Apple Watch validation for provider settings, API key storage,
-  real transcription, and WatchConnectivity.
+  audio-understanding note generation, and WatchConnectivity.
 
 ## Product Direction
 
@@ -53,11 +53,11 @@ Continue with provider and persistence work:
 - Provider configuration now defines fake, OpenAI-compatible, and local command
   provider kinds.
 - Provider settings and Keychain API key storage now exist in the iPhone app.
-- The iPhone app can select fake or OpenAI-compatible provider.
-- Real network calls are enabled only when OpenAI-compatible is selected and an
-  API key is saved.
-- Generic iOS device command-line build is blocked until a Development Team is
-  selected in Xcode.
+- The iPhone app can select fake or audio-understanding provider.
+- Real network calls are enabled only when audio understanding is selected and
+  an API key is saved.
+- The first real iPhone command-line build and install succeeded after enabling
+  Developer Mode and trusting the Personal Team profile.
 - Phase 7 is not complete until the user validates on real hardware.
 
 ## Guardrails
@@ -104,3 +104,6 @@ Continue with provider and persistence work:
 - 2026-06-01: Added Phase 7 provider settings UI, Keychain API key storage, and
   runtime provider selection. Local tests and simulator builds passed. Device
   signing and true-device validation are still pending.
+- 2026-06-01: Adjusted the real provider strategy to direct audio
+  understanding for `mimo-v2.5-pro`: `POST /chat/completions` with base64 audio
+  replaces transcription-only `POST /audio/transcriptions`.

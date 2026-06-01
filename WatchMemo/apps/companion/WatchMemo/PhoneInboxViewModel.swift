@@ -80,7 +80,7 @@ final class PhoneInboxViewModel: ObservableObject {
         providerSettings = settings
         hasSavedAPIKey = apiKeyStore.hasKey()
         statusText = settings.selectedProvider == .openAICompatible
-            ? "OpenAI-compatible provider selected"
+            ? "Audio understanding provider selected"
             : "Fake provider selected"
     }
 
@@ -154,7 +154,9 @@ final class PhoneInboxViewModel: ObservableObject {
 
         return TranscriptPipeline(
             provider: provider,
-            cleaner: ConservativeTranscriptCleaner()
+            cleaner: providerSettings.selectedProvider == .openAICompatible
+                ? PassthroughTranscriptCleaner()
+                : ConservativeTranscriptCleaner()
         )
     }
 }
@@ -187,8 +189,14 @@ private enum SampleAudioGenerator {
         }
 
         let fileURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("watchmemo-sample-\(UUID().uuidString).caf")
-        let audioFile = try AVAudioFile(forWriting: fileURL, settings: format.settings)
+            .appendingPathComponent("watchmemo-sample-\(UUID().uuidString).m4a")
+        let outputSettings: [String: Any] = [
+            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
+        ]
+        let audioFile = try AVAudioFile(forWriting: fileURL, settings: outputSettings)
         try audioFile.write(from: buffer)
         return (fileURL, duration)
     }

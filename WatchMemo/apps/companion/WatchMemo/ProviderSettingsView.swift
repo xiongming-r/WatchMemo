@@ -18,7 +18,7 @@ struct ProviderSettingsView: View {
                 Section("Provider") {
                     Picker("Mode", selection: $selectedProvider) {
                         Text("Fake").tag(ProviderRuntimeSettings.SelectedProvider.fake)
-                        Text("OpenAI-compatible").tag(ProviderRuntimeSettings.SelectedProvider.openAICompatible)
+                        Text("Audio understanding").tag(ProviderRuntimeSettings.SelectedProvider.openAICompatible)
                     }
                     .pickerStyle(.segmented)
                 }

@@ -80,63 +80,61 @@ struct TranscriptPipelineTests {
 
         #expect(settings.selectedProvider == .fake)
         #expect(settings.endpointURL == URL(string: "https://api.openai.com/v1")!)
-        #expect(settings.model == "gpt-4o-transcribe")
+        #expect(settings.model == "mimo-v2.5-pro")
     }
 
     @Test("provider runtime settings create OpenAI compatible configuration")
     func providerRuntimeSettingsCreateOpenAICompatibleConfiguration() {
         let settings = ProviderRuntimeSettings.openAICompatible(
             endpointURL: URL(string: "https://api.example.com/v1")!,
-            model: "custom-transcribe"
+            model: "custom-audio-model"
         )
 
         #expect(settings.selectedProvider == .openAICompatible)
         #expect(settings.providerConfiguration.kind == .openAICompatible)
         #expect(settings.providerConfiguration.endpointURL == URL(string: "https://api.example.com/v1")!)
-        #expect(settings.providerConfiguration.model == "custom-transcribe")
+        #expect(settings.providerConfiguration.model == "custom-audio-model")
     }
 
-    @Test("OpenAI compatible provider sends audio transcription request and parses text")
-    func openAICompatibleProviderSendsRequestAndParsesText() async throws {
+    @Test("OpenAI compatible provider sends audio understanding chat request and parses text")
+    func openAICompatibleProviderSendsAudioUnderstandingRequestAndParsesText() async throws {
         let root = try makeTemporaryDirectory()
         let audioURL = root.appendingPathComponent("sample.m4a")
         try Data("audio-bytes".utf8).write(to: audioURL)
         let client = CapturingTranscriptHTTPClient(
             response: HTTPURLResponse(
-                url: URL(string: "https://api.example.com/v1/audio/transcriptions")!,
+                url: URL(string: "https://api.example.com/v1/chat/completions")!,
                 statusCode: 200,
                 httpVersion: nil,
                 headerFields: nil
             )!,
-            data: Data(#"{"text":"今天会议决定先做手表录音。"}"#.utf8)
+            data: Data(#"{"choices":[{"message":{"content":"今天会议决定先做手表录音。"}}]}"#.utf8)
         )
         let provider = OpenAICompatibleTranscriptProvider(
             configuration: .openAICompatible(
                 endpointURL: URL(string: "https://api.example.com/v1")!,
-                model: "gpt-4o-transcribe"
+                model: "mimo-v2.5-pro"
             ),
             apiKey: "test-key",
             httpClient: client,
-            boundary: "TEST-BOUNDARY"
+            noteInstruction: "测试整理指令"
         )
 
         let transcript = try await provider.transcribe(audioFileURL: audioURL, hint: "会议记录")
 
         #expect(transcript == "今天会议决定先做手表录音。")
         #expect(client.capturedRequest?.httpMethod == "POST")
-        #expect(client.capturedRequest?.url?.absoluteString == "https://api.example.com/v1/audio/transcriptions")
+        #expect(client.capturedRequest?.url?.absoluteString == "https://api.example.com/v1/chat/completions")
         #expect(client.capturedRequest?.value(forHTTPHeaderField: "Authorization") == "Bearer test-key")
-        #expect(client.capturedRequest?.value(forHTTPHeaderField: "Content-Type") == "multipart/form-data; boundary=TEST-BOUNDARY")
+        #expect(client.capturedRequest?.value(forHTTPHeaderField: "Content-Type") == "application/json")
 
         let body = try #require(client.capturedBodyString)
-        #expect(body.contains(#"name="model""#))
-        #expect(body.contains("gpt-4o-transcribe"))
-        #expect(body.contains(#"name="prompt""#))
+        #expect(body.contains(#""model":"mimo-v2.5-pro""#))
+        #expect(body.contains(#""type":"input_audio""#))
+        #expect(body.contains(#""format":"m4a""#))
+        #expect(body.contains(#""data":"YXVkaW8tYnl0ZXM=""#))
+        #expect(body.contains("测试整理指令"))
         #expect(body.contains("会议记录"))
-        #expect(body.contains(#"name="response_format""#))
-        #expect(body.contains("json"))
-        #expect(body.contains(#"filename="sample.m4a""#))
-        #expect(body.contains("audio-bytes"))
     }
 
     @Test("OpenAI compatible provider throws on non-success responses")
@@ -146,7 +144,7 @@ struct TranscriptPipelineTests {
         try Data("audio-bytes".utf8).write(to: audioURL)
         let client = CapturingTranscriptHTTPClient(
             response: HTTPURLResponse(
-                url: URL(string: "https://api.example.com/v1/audio/transcriptions")!,
+                url: URL(string: "https://api.example.com/v1/chat/completions")!,
                 statusCode: 401,
                 httpVersion: nil,
                 headerFields: nil
@@ -156,8 +154,7 @@ struct TranscriptPipelineTests {
         let provider = OpenAICompatibleTranscriptProvider(
             configuration: .openAICompatible(endpointURL: URL(string: "https://api.example.com/v1")!),
             apiKey: "bad-key",
-            httpClient: client,
-            boundary: "TEST-BOUNDARY"
+            httpClient: client
         )
 
         await #expect(throws: OpenAICompatibleTranscriptProviderError.self) {

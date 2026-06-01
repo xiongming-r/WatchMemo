@@ -75,7 +75,7 @@ recording ID.
 ## iPhone Simulated Import
 
 In Debug builds of the `WatchMemo` iPhone app, the toolbar import button
-generates a short local `.caf` audio sample and imports it into the same inbox
+generates a short local `.m4a` audio sample and imports it into the same inbox
 used by WatchConnectivity.
 
 This lets us validate the iPhone-side list, persistence, and playback without a
@@ -89,18 +89,22 @@ Generated drafts are saved locally and loaded again when the iPhone app starts.
 The provider configuration boundary exists in code, but there is not yet a
 settings UI or real API adapter.
 
-## OpenAI-Compatible Provider Adapter
+## OpenAI-Compatible Audio Understanding Provider
 
 `OpenAICompatibleTranscriptProvider` implements the `TranscriptProvider`
-protocol by sending multipart `POST /audio/transcriptions` requests to an
-OpenAI-compatible endpoint.
+protocol by sending JSON `POST /chat/completions` requests with base64 audio to
+an OpenAI-compatible endpoint.
+
+The current default model is `mimo-v2.5-pro`, because this phase assumes the
+model can directly understand audio and return cleaned, knowledge-base-ready
+text. This is different from a speech-to-text-only provider.
 
 The adapter is unit-tested with an injectable `TranscriptHTTPClient`; package
 tests do not make network calls and do not require an API key.
 
-The iPhone app target compiles the adapter, but still defaults to
-`FakeTranscriptProvider` until secure API key storage and provider settings are
-implemented.
+When the audio-understanding provider is selected, the app bypasses local filler
+cleanup with `PassthroughTranscriptCleaner`, because the remote model output is
+already expected to be the final cleaned note.
 
 ## Real API Provider Settings
 
@@ -108,16 +112,16 @@ The iPhone app now has a gear button that opens provider settings.
 
 Settings:
 
-- Provider mode: `Fake` or `OpenAI-compatible`.
+- Provider mode: `Fake` or `Audio understanding`.
 - Endpoint: defaults to `https://api.openai.com/v1`.
-- Model: defaults to `gpt-4o-transcribe`.
+- Model: defaults to `mimo-v2.5-pro`.
 - API key: stored in Keychain by `APIKeyStore`.
 
 Non-secret provider settings are stored in `UserDefaults` by
 `ProviderSettingsStore`.
 
-The app still starts in Fake mode by default. Selecting OpenAI-compatible without
-a saved API key will show an error when generating a draft.
+The app still starts in Fake mode by default. Selecting audio understanding
+without a saved API key will show an error when generating a draft.
 
 ## Real Device Signing
 
@@ -138,17 +142,18 @@ Signing for "WatchMemo" requires a development team.
 ```
 
 Open the project in Xcode and set Signing & Capabilities for real-device
-validation.
+validation. On a free Personal Team, the iPhone may also require Developer Mode
+and manual trust under Settings > General > VPN & Device Management.
 
 ## Phase 7 Real-Device Checklist
 
 1. Select a Development Team in Xcode.
 2. Run `WatchMemo` on a real iPhone.
-3. Open the gear button and select OpenAI-compatible.
+3. Open the gear button and select Audio understanding.
 4. Save endpoint, model, and API key.
 5. Add a recording to the inbox.
 6. Tap the sparkle button.
-7. Confirm a real transcript draft appears.
+7. Confirm a real cleaned note draft appears.
 8. Restart the app and confirm the draft remains.
 9. Run the watch app on a real Apple Watch and validate recording transfer.
 
