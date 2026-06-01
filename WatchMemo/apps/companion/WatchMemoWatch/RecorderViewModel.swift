@@ -16,9 +16,15 @@ final class RecorderViewModel: NSObject, ObservableObject {
 
     override init() {
         let store = LocalRecordingStore()
+        let transport = IPhoneRelayTransport.shared
         self.store = store
-        self.deliveryQueue = DeliveryQueue(store: store, transport: IPhoneRelayTransport.shared)
+        self.deliveryQueue = DeliveryQueue(store: store, transport: transport)
         super.init()
+        transport.onTransferFinished = { [weak self] recordingID, error in
+            Task { @MainActor in
+                await self?.handleTransferFinished(recordingID: recordingID, error: error)
+            }
+        }
     }
 
     var statusTitle: String {
@@ -134,10 +140,25 @@ final class RecorderViewModel: NSObject, ObservableObject {
                 createdAt: startedAt,
                 durationSeconds: duration
             )
-            message = "Queued locally"
+            message = "Waiting for iPhone transfer"
         } catch {
             message = "Saved, queue failed: \(error.localizedDescription)"
         }
+    }
+
+    private func handleTransferFinished(recordingID: RecordingManifest.ID, error: Error?) async {
+        if let error {
+            try? await store.updateRecording(
+                id: recordingID,
+                deliveryState: .failed,
+                errorMessage: error.localizedDescription
+            )
+            message = "Phone transfer failed: \(error.localizedDescription)"
+            return
+        }
+
+        try? await store.updateRecording(id: recordingID, deliveryState: .transferredToPhone)
+        message = "Transferred to iPhone"
     }
 
     private func startTimer() {

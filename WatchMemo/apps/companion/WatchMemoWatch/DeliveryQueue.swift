@@ -52,7 +52,6 @@ actor DeliveryQueue {
         do {
             try await store.updateRecording(id: recording.id, deliveryState: .sendingToPhone)
             try await transport.send(recording: recording, fileURL: await store.fileURL(for: recording))
-            try await store.updateRecording(id: recording.id, deliveryState: .transferredToPhone)
         } catch {
             try? await store.updateRecording(
                 id: recording.id,

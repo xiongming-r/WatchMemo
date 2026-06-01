@@ -4,6 +4,8 @@ import WatchConnectivity
 final class IPhoneRelayTransport: NSObject, RecordingDeliveryTransport {
     static let shared = IPhoneRelayTransport()
 
+    var onTransferFinished: ((RecordingManifest.ID, Error?) -> Void)?
+
     private let session: WCSession?
 
     private override init() {
@@ -46,6 +48,15 @@ extension IPhoneRelayTransport: WCSessionDelegate {
         activationDidCompleteWith activationState: WCSessionActivationState,
         error: Error?
     ) {
+    }
+
+    func session(_ session: WCSession, didFinish fileTransfer: WCSessionFileTransfer, error: Error?) {
+        guard let idString = fileTransfer.file.metadata?["recordingID"] as? String,
+              let id = UUID(uuidString: idString) else {
+            return
+        }
+
+        onTransferFinished?(id, error)
     }
 }
 

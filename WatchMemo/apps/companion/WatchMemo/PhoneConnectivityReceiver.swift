@@ -22,7 +22,7 @@ final class PhoneConnectivityReceiver: NSObject {
         let session = WCSession.default
         session.delegate = self
         session.activate()
-        updateStatus("Connecting to watch")
+        updateStatus(connectivityStatus(for: session, prefix: "Connecting"))
     }
 
     private func receive(file: WCSessionFile) {
@@ -45,6 +45,12 @@ final class PhoneConnectivityReceiver: NSObject {
 
     private func updateStatus(_ text: String) {
         onStatusChange?(text)
+    }
+
+    private func connectivityStatus(for session: WCSession, prefix: String) -> String {
+        let pairedText = session.isPaired ? "paired" : "not paired"
+        let installedText = session.isWatchAppInstalled ? "watch app installed" : "watch app missing"
+        return "\(prefix): \(pairedText), \(installedText)"
     }
 
     private func createdAt(from metadata: [String: Any]?) -> Date {
@@ -74,7 +80,11 @@ extension PhoneConnectivityReceiver: WCSessionDelegate {
             if let error {
                 updateStatus("Connection failed: \(error.localizedDescription)")
             } else {
-                updateStatus(activationState == .activated ? "Ready for watch" : "Waiting for watch")
+                updateStatus(
+                    activationState == .activated
+                        ? connectivityStatus(for: session, prefix: "Ready")
+                        : connectivityStatus(for: session, prefix: "Waiting")
+                )
             }
         }
     }
@@ -82,6 +92,12 @@ extension PhoneConnectivityReceiver: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile) {
         Task { @MainActor in
             receive(file: file)
+        }
+    }
+
+    nonisolated func sessionReachabilityDidChange(_ session: WCSession) {
+        Task { @MainActor in
+            updateStatus(connectivityStatus(for: session, prefix: "Reachability changed"))
         }
     }
 

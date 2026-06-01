@@ -5,8 +5,8 @@ Date: 2026-06-01
 ## Goal
 
 Enable the iPhone app to use a real OpenAI-compatible transcription API while
-keeping the API key out of source control. This phase is not considered complete
-until real iPhone + Apple Watch validation passes.
+keeping the API key out of source control. Confirm the full real-device loop:
+Apple Watch recording, iPhone receipt, and AI-generated text.
 
 ## What Changed
 
@@ -95,20 +95,106 @@ Apple Watch end-to-end validation should additionally confirm:
 
 ## Current Status
 
-Ready for user device validation. Not yet marked complete.
+Complete.
+
+The Mac and Xcode toolchain are now compatible with the user's real devices:
+
+- `macOS 26.5`
+- `Xcode 26.5 (17F42)`
+- `watchOS 26.5` SDK
+- Apple Watch Series 10 on watchOS `26.5`
+
+Fresh command-line validation after the upgrade:
+
+- `xcodebuild -version` reports `Xcode 26.5`.
+- `xcodebuild -showsdks` reports `watchOS 26.5`.
+- `devicectl` reports the Apple Watch has developer mode enabled, DDI services
+  available, and a connected tunnel.
+- The iPhone app rebuilt, installed, and launched on the real iPhone:
+  `com.watchmemo.app`.
+- The Watch app rebuilt, installed, and launched on the real Apple Watch:
+  `com.watchmemo.app.watchkitapp`.
+
+Important signing note:
+
+- Installing the first generic watchOS build failed with
+  `This provisioning profile cannot be installed on this device`.
+- Rebuilding the Watch target with the concrete destination
+  `platform=watchOS,id=00008310-001479040C8B601E` generated a usable profile,
+  and `devicectl device install app` then succeeded.
+
+After the transfer fix below, the user confirmed the real-device MVP loop
+succeeds:
+
+- Apple Watch records audio.
+- iPhone receives and displays the recording.
+- The configured audio-understanding provider returns text successfully.
+
+## 2026-06-01 Watch Transfer Debugging
+
+The first real Watch recording test did not appear in the iPhone inbox.
+
+Evidence collected from the devices:
+
+- The Watch app did create local `.m4a` files in `Documents/Recordings`.
+- The Watch app persisted two manifest entries in `Documents/recordings.json`.
+- The WatchConnectivity internal `FileTransfers` directory contained two
+  pending file-transfer records with state `transferring`.
+- The iPhone app inbox still only contained earlier `simulatedImport` records.
+
+Root-cause findings:
+
+- The Watch app was incorrectly marking a recording as `transferredToPhone`
+  immediately after `WCSession.transferFile(...)` returned. That API only means
+  the file was accepted into the system transfer queue, not that the iPhone
+  received it.
+- The companion project had the iPhone and Watch targets as independent targets.
+  The iPhone app did not embed `WatchMemoWatch.app`, so the installed iPhone
+  app had no `Watch/WatchMemoWatch.app` bundle. This likely made
+  WatchConnectivity pairing/installation state ambiguous for the iPhone side.
+
+Fixes applied:
+
+- Added an `Embed Watch Content` build phase to the iPhone target and an
+  explicit dependency on the Watch target.
+- Updated the Watch delivery flow so queued transfers stay in
+  `sendingToPhone` until WatchConnectivity calls the file-transfer completion
+  delegate.
+- Added iPhone-side WatchConnectivity status text showing whether the phone is
+  paired and whether the watch app is installed.
+
+Fresh validation:
+
+- A pre-fix check confirmed
+  `/private/tmp/WatchMemoDerivedData/Build/Products/Debug-iphoneos/WatchMemo.app/Watch`
+  did not exist.
+- After the fix, the iPhone build copied
+  `WatchMemoWatch.app` into `WatchMemo.app/Watch/WatchMemoWatch.app` and ran
+  `ValidateEmbeddedBinary`.
+- The rebuilt iPhone app installed/launched on the real iPhone.
+- The rebuilt Watch app installed/launched on the real Apple Watch.
 
 ## Remaining Risks
 
-- Signing is not configured in the project for generic iOS device builds.
-- The real API path has not been exercised with a live key yet.
-- WatchConnectivity on paired hardware still needs validation.
-- The settings UI is intentionally minimal and has no provider test button yet.
+- WatchConnectivity background behavior still needs longer-run validation,
+  especially when the iPhone app is not foregrounded.
+- The current UI is still a developer/debug surface rather than a polished note
+  workflow.
+- AI output is plain text only; it does not yet produce structured title,
+  summary, action items, tags, or export-ready Markdown.
+- The app does not yet export to Obsidian or another knowledge base.
 
 ## Next Candidate Phase
 
-After true-device validation:
+Recommended next phase:
 
-- If validation passes, mark Phase 7 complete and start model-based cleanup or
-  export planning.
-- If validation fails, fix the specific device/API/WatchConnectivity failure
-  before adding new features.
+- Stabilize the MVP loop before adding export integrations: make transfer
+  status visible, add retry/manual resend affordances, and persist AI output in
+  a note-oriented shape.
+
+Alternative next phases:
+
+- Build structured AI note output: title, cleaned transcript, summary, action
+  items, tags, and Markdown.
+- Start knowledge-base export: first local Markdown/Obsidian file export, later
+  app-specific API integrations.

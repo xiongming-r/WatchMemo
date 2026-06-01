@@ -36,6 +36,29 @@ struct TranscriptPipelineTests {
         #expect(draft.rawText == "um record the pricing idea, you know, make it easier to review later.")
         #expect(draft.cleanedText == "record the pricing idea, make it easier to review later.")
         #expect(draft.status == .cleaned)
+        #expect(draft.structuredNote?.title == "Record the pricing idea")
+        #expect(draft.structuredNote?.markdown.contains("## 正文") == true)
+    }
+
+    @Test("note formatter creates title summary action items tags and markdown")
+    func noteFormatterCreatesStructuredNote() {
+        let formatter = TranscriptNoteFormatter()
+        let note = formatter.format(
+            text: """
+            今天讨论 WatchMemo 真机验证，确认手表录音可以同步到手机。
+            待办：补充失败重试按钮。
+            标签：手表录音, MVP
+            """,
+            createdAt: Date(timeIntervalSince1970: 1_778_920_000)
+        )
+
+        #expect(note.title == "今天讨论 WatchMemo 真机验证")
+        #expect(note.summary == "今天讨论 WatchMemo 真机验证，确认手表录音可以同步到手机。")
+        #expect(note.actionItems == ["补充失败重试按钮。"])
+        #expect(note.tags == ["手表录音", "MVP"])
+        #expect(note.markdown.contains("# 今天讨论 WatchMemo 真机验证"))
+        #expect(note.markdown.contains("- [ ] 补充失败重试按钮。"))
+        #expect(note.markdown.contains("#手表录音 #MVP"))
     }
 
     @Test("draft store persists drafts and replaces matching recording IDs")
@@ -61,6 +84,33 @@ struct TranscriptPipelineTests {
         let reloaded = try reloadedStore.loadDrafts()
 
         #expect(reloaded == [replacement])
+    }
+
+    @Test("draft store decodes legacy drafts without structured notes")
+    func draftStoreDecodesLegacyDraftsWithoutStructuredNotes() throws {
+        let root = try makeTemporaryDirectory().appendingPathComponent("Drafts")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        try Data(
+            """
+            [
+              {
+                "id": "AAAAAAAA-0000-0000-0000-000000000003",
+                "recordingID": "22222222-3333-4444-5555-666666666666",
+                "rawText": "raw text",
+                "cleanedText": "cleaned text",
+                "removedFillers": [],
+                "createdAt": 1778920000,
+                "status": "cleaned"
+              }
+            ]
+            """.utf8
+        ).write(to: root.appendingPathComponent("transcript-drafts.json"))
+
+        let drafts = try TranscriptDraftStore(rootDirectory: root).loadDrafts()
+
+        #expect(drafts.count == 1)
+        #expect(drafts[0].structuredNote == nil)
+        #expect(drafts[0].cleanedText == "cleaned text")
     }
 
     @Test("provider configuration defines fake provider boundary")
@@ -222,7 +272,11 @@ struct TranscriptPipelineTests {
             cleanedText: cleanedText,
             removedFillers: ["嗯"],
             createdAt: Date(timeIntervalSince1970: 1_778_910_000),
-            status: .cleaned
+            status: .cleaned,
+            structuredNote: TranscriptNoteFormatter().format(
+                text: cleanedText,
+                createdAt: Date(timeIntervalSince1970: 1_778_910_000)
+            )
         )
     }
 

@@ -47,6 +47,11 @@ struct ContentView: View {
                                 Task {
                                     await inbox.processTranscript(for: recording)
                                 }
+                            },
+                            onCopyMarkdownTapped: {
+                                if let markdown = inbox.transcriptDrafts[recording.id]?.markdownText {
+                                    UIPasteboard.general.string = markdown
+                                }
                             }
                         )
                     }
@@ -88,6 +93,7 @@ private struct RecordingRow: View {
     let isProcessingTranscript: Bool
     let onPlayTapped: () -> Void
     let onTranscriptTapped: () -> Void
+    let onCopyMarkdownTapped: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -111,11 +117,15 @@ private struct RecordingRow: View {
                 .foregroundStyle(.secondary)
 
                 if let draft {
-                    Text(draft.cleanedText)
-                        .font(.subheadline)
-                        .foregroundStyle(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    NotePreview(draft: draft)
                         .padding(.top, 2)
+
+                    Button(action: onCopyMarkdownTapped) {
+                        Label("Copy Markdown", systemImage: "doc.on.doc")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Copy Markdown")
                 }
             }
 
@@ -140,5 +150,46 @@ private struct RecordingRow: View {
     private func format(duration: TimeInterval) -> String {
         let seconds = max(Int(duration.rounded()), 0)
         return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+}
+
+private struct NotePreview: View {
+    let draft: TranscriptDraft
+
+    var body: some View {
+        if let note = draft.structuredNote {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(note.title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(2)
+
+                Text(note.summary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if !note.actionItems.isEmpty {
+                    VStack(alignment: .leading, spacing: 2) {
+                        ForEach(note.actionItems, id: \.self) { item in
+                            Label(item, systemImage: "checklist.unchecked")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                        }
+                    }
+                }
+            }
+        } else {
+            Text(draft.cleanedText)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+private extension TranscriptDraft {
+    var markdownText: String {
+        structuredNote?.markdown ?? cleanedText
     }
 }

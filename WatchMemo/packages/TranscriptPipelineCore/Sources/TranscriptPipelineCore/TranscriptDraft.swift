@@ -13,6 +13,7 @@ public struct TranscriptDraft: Codable, Equatable, Identifiable {
     public let removedFillers: [String]
     public let createdAt: Date
     public let status: Status
+    public let structuredNote: StructuredTranscriptNote?
 
     public init(
         id: UUID,
@@ -21,7 +22,8 @@ public struct TranscriptDraft: Codable, Equatable, Identifiable {
         cleanedText: String,
         removedFillers: [String],
         createdAt: Date,
-        status: Status
+        status: Status,
+        structuredNote: StructuredTranscriptNote? = nil
     ) {
         self.id = id
         self.recordingID = recordingID
@@ -30,6 +32,7 @@ public struct TranscriptDraft: Codable, Equatable, Identifiable {
         self.removedFillers = removedFillers
         self.createdAt = createdAt
         self.status = status
+        self.structuredNote = structuredNote
     }
 }
 
