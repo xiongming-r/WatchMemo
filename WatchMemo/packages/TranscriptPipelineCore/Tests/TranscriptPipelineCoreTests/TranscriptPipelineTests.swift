@@ -137,6 +137,33 @@ struct TranscriptPipelineTests {
         #expect(body.contains("会议记录"))
     }
 
+    @Test("OpenAI compatible provider asks model not to invent content")
+    func openAICompatibleProviderAsksModelNotToInventContent() async throws {
+        let root = try makeTemporaryDirectory()
+        let audioURL = root.appendingPathComponent("sample.m4a")
+        try Data("audio-bytes".utf8).write(to: audioURL)
+        let client = CapturingTranscriptHTTPClient(
+            response: HTTPURLResponse(
+                url: URL(string: "https://api.example.com/v1/chat/completions")!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!,
+            data: Data(#"{"choices":[{"message":{"content":"无法从音频中识别出明确人声内容。"}}]}"#.utf8)
+        )
+        let provider = OpenAICompatibleTranscriptProvider(
+            configuration: .openAICompatible(endpointURL: URL(string: "https://api.example.com/v1")!),
+            apiKey: "test-key",
+            httpClient: client
+        )
+
+        _ = try await provider.transcribe(audioFileURL: audioURL, hint: "debug sample")
+
+        let body = try #require(client.capturedBodyString)
+        #expect(body.contains("不要编造"))
+        #expect(body.contains("无法从音频中识别出明确人声内容"))
+    }
+
     @Test("OpenAI compatible provider parses reasoning content when message content is empty")
     func openAICompatibleProviderParsesReasoningContentFallback() async throws {
         let root = try makeTemporaryDirectory()

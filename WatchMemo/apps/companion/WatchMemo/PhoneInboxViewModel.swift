@@ -91,21 +91,25 @@ final class PhoneInboxViewModel: ObservableObject {
 
 #if DEBUG
     func importSampleRecording() {
-        do {
-            let sample = try SampleAudioGenerator.makeSample()
-            _ = try store.importRecording(
-                fileURL: sample.fileURL,
-                metadata: InboxImportMetadata(
-                    id: UUID(),
-                    originalFileName: sample.fileURL.lastPathComponent,
-                    createdAt: Date(),
-                    durationSeconds: sample.duration,
-                    source: .simulatedImport
+        statusText = "Generating simulated speech"
+
+        Task {
+            do {
+                let sample = try await SampleAudioGenerator.makeSample()
+                _ = try store.importRecording(
+                    fileURL: sample.fileURL,
+                    metadata: InboxImportMetadata(
+                        id: UUID(),
+                        originalFileName: sample.fileURL.lastPathComponent,
+                        createdAt: Date(),
+                        durationSeconds: sample.duration,
+                        source: .simulatedImport
+                    )
                 )
-            )
-            reload(status: "Imported simulated recording")
-        } catch {
-            statusText = "Simulated import failed: \(error.localizedDescription)"
+                reload(status: "Imported simulated speech recording")
+            } catch {
+                statusText = "Simulated import failed: \(error.localizedDescription)"
+            }
         }
     }
 #endif
@@ -174,31 +178,87 @@ private enum ProviderSelectionError: LocalizedError {
 
 #if DEBUG
 private enum SampleAudioGenerator {
-    static func makeSample() throws -> (fileURL: URL, duration: TimeInterval) {
-        let duration: TimeInterval = 0.8
-        let sampleRate = 44_100.0
-        let frameCount = AVAudioFrameCount(duration * sampleRate)
-        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
-        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
-        buffer.frameLength = frameCount
-
-        let channel = buffer.floatChannelData![0]
-        for frame in 0..<Int(frameCount) {
-            let time = Double(frame) / sampleRate
-            channel[frame] = Float(sin(2.0 * Double.pi * 440.0 * time) * 0.18)
-        }
-
+    static func makeSample() async throws -> (fileURL: URL, duration: TimeInterval) {
+        let spokenText = "测试录音。今天下午三点验证手表录音功能，重点检查音频上传和 AI 整理结果是否准确。"
         let fileURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("watchmemo-sample-\(UUID().uuidString).m4a")
-        let outputSettings: [String: Any] = [
-            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: sampleRate,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
-        ]
-        let audioFile = try AVAudioFile(forWriting: fileURL, settings: outputSettings)
-        try audioFile.write(from: buffer)
-        return (fileURL, duration)
+            .appendingPathComponent("watchmemo-debug-speech-\(UUID().uuidString).m4a")
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let synthesizer = AVSpeechSynthesizer()
+            let utterance = AVSpeechUtterance(string: spokenText)
+            utterance.voice = AVSpeechSynthesisVoice(language: "zh-CN")
+            utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.88
+            utterance.volume = 1.0
+
+            var audioFile: AVAudioFile?
+            var totalFrames: AVAudioFramePosition = 0
+            var didResume = false
+
+            func resumeOnce(_ result: Result<(fileURL: URL, duration: TimeInterval), Error>) {
+                guard !didResume else {
+                    return
+                }
+
+                didResume = true
+                continuation.resume(with: result)
+            }
+
+            synthesizer.write(utterance) { [synthesizer] buffer in
+                _ = synthesizer
+
+                guard let pcmBuffer = buffer as? AVAudioPCMBuffer else {
+                    resumeOnce(.failure(SampleAudioGeneratorError.unsupportedBufferFormat))
+                    return
+                }
+
+                guard pcmBuffer.frameLength > 0 else {
+                    guard let audioFile, totalFrames > 0 else {
+                        resumeOnce(.failure(SampleAudioGeneratorError.emptyAudio))
+                        return
+                    }
+
+                    let duration = Double(totalFrames) / audioFile.processingFormat.sampleRate
+                    resumeOnce(.success((fileURL: fileURL, duration: duration)))
+                    return
+                }
+
+                do {
+                    if audioFile == nil {
+                        let outputSettings: [String: Any] = [
+                            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                            AVSampleRateKey: pcmBuffer.format.sampleRate,
+                            AVNumberOfChannelsKey: Int(pcmBuffer.format.channelCount),
+                            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+                        ]
+                        audioFile = try AVAudioFile(
+                            forWriting: fileURL,
+                            settings: outputSettings,
+                            commonFormat: pcmBuffer.format.commonFormat,
+                            interleaved: pcmBuffer.format.isInterleaved
+                        )
+                    }
+
+                    try audioFile?.write(from: pcmBuffer)
+                    totalFrames += AVAudioFramePosition(pcmBuffer.frameLength)
+                } catch {
+                    resumeOnce(.failure(error))
+                }
+            }
+        }
+    }
+}
+
+private enum SampleAudioGeneratorError: LocalizedError {
+    case unsupportedBufferFormat
+    case emptyAudio
+
+    var errorDescription: String? {
+        switch self {
+        case .unsupportedBufferFormat:
+            return "Speech synthesizer returned an unsupported audio buffer"
+        case .emptyAudio:
+            return "Speech synthesizer did not produce audio"
+        }
     }
 }
 #endif

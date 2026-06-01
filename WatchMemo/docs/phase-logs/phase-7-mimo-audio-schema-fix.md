@@ -66,3 +66,25 @@ durable identity is `storedFileName`, not the absolute URL.
 Fix: `PhoneInboxStore.loadRecordings()` now rebuilds each `fileURL` from the
 current inbox `Audio/` directory plus `storedFileName`. A regression test covers
 loading a manifest copied from an old container root into a new one.
+
+## Follow-Up: Debug Sample Hallucination
+
+The next validation reached the provider, but the Debug sample was a 0.8 second
+pure tone with no human speech. The model returned a plausible meeting note,
+which is a hallucination, not a valid transcription.
+
+Fixes:
+
+- Debug import now generates a spoken Chinese sample with
+  `AVSpeechSynthesizer` instead of a sine-wave tone.
+- The provider system instruction now explicitly says to rely only on
+  recognizable speech, and to output `无法从音频中识别出明确人声内容。` when
+  the audio has no clear human voice.
+- The prompt also says not to invent meetings, people, times, tasks, customers,
+  contracts, or details that did not appear in the audio.
+
+Expected Debug sample content:
+
+```text
+测试录音。今天下午三点验证手表录音功能，重点检查音频上传和 AI 整理结果是否准确。
+```

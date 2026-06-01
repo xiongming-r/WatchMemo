@@ -45,7 +45,9 @@ public enum OpenAICompatibleTranscriptProviderError: LocalizedError, Equatable {
 
 public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
     public static let defaultNoteInstruction = """
-    请理解这段录音，在不改变原意的前提下，去除语气词、重复表达和明显口误，输出一段适合记录到知识库的中文文本。只输出整理后的正文。
+    请只依据音频中可辨认的人声内容生成记录文本，在不改变原意的前提下，去除语气词、重复表达和明显口误，输出一段适合记录到知识库的中文文本。
+    如果音频没有可辨认人声、听不清、或内容不足，请只输出：无法从音频中识别出明确人声内容。
+    不要编造会议、人名、时间、任务、客户、合同或任何音频中没有出现的信息。只输出整理后的正文。
     """
 
     private let configuration: ProviderConfiguration
@@ -108,7 +110,7 @@ public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
             : audioFileURL.pathExtension.lowercased()
         let dataURI = "data:\(mimeType(for: format));base64,\(fileData.base64EncodedString())"
         let userText = [
-            "录音线索：\(hint ?? audioFileURL.lastPathComponent)",
+            "录音线索（只用于识别文件，不可作为正文依据）：\(hint ?? audioFileURL.lastPathComponent)",
             "请根据音频内容生成最终记录文本。"
         ].joined(separator: "\n")
 
