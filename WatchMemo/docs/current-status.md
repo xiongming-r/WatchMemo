@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-01 11:25 Asia/Shanghai
+Last updated: 2026-06-01 12:00 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,7 +8,7 @@ Phase 0 is complete.
 
 Latest local checkpoint:
 
-- `docs/phase-logs/phase-7-audio-understanding-adjustment.md`
+- `docs/phase-logs/phase-7-mimo-audio-schema-fix.md`
 
 Latest fully completed checkpoint:
 
@@ -58,6 +58,10 @@ Continue with provider and persistence work:
   an API key is saved.
 - The first real iPhone command-line build and install succeeded after enabling
   Developer Mode and trusting the Personal Team profile.
+- MiMo audio understanding now uses the documented data URI `input_audio`
+  shape and defaults to `mimo-v2.5`.
+- The iPhone status/error area now has a one-tap copy button for sharing
+  provider errors during real-device testing.
 - Phase 7 is not complete until the user validates on real hardware.
 
 ## Guardrails
@@ -105,5 +109,9 @@ Continue with provider and persistence work:
   runtime provider selection. Local tests and simulator builds passed. Device
   signing and true-device validation are still pending.
 - 2026-06-01: Adjusted the real provider strategy to direct audio
-  understanding for `mimo-v2.5-pro`: `POST /chat/completions` with base64 audio
-  replaces transcription-only `POST /audio/transcriptions`.
+  understanding: `POST /chat/completions` with base64 audio replaces
+  transcription-only `POST /audio/transcriptions`.
+- 2026-06-01: Fixed MiMo audio request compatibility after the real iPhone API
+  test returned `No endpoints found that support image input`. The app now
+  sends `data:audio/m4a;base64,...`, removes the separate `format` field,
+  parses `reasoning_content` fallback, and defaults to `mimo-v2.5`.

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @EnvironmentObject private var inbox: PhoneInboxViewModel
@@ -9,8 +10,22 @@ struct ContentView: View {
         NavigationStack {
             List {
                 Section {
-                    Text(inbox.statusText)
-                        .foregroundStyle(.secondary)
+                    HStack(alignment: .top, spacing: 10) {
+                        Text(inbox.statusText)
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+
+                        Spacer(minLength: 8)
+
+                        Button {
+                            UIPasteboard.general.string = inbox.statusText
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .frame(width: 28, height: 28)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Copy status")
+                    }
                 }
 
                 if inbox.recordings.isEmpty {

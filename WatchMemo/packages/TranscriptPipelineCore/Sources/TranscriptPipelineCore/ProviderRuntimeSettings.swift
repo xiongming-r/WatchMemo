@@ -19,7 +19,7 @@ public struct ProviderRuntimeSettings: Codable, Equatable, Sendable {
     public static let `default` = ProviderRuntimeSettings(
         selectedProvider: .fake,
         endpointURL: URL(string: "https://api.openai.com/v1")!,
-        model: "mimo-v2.5-pro"
+        model: "mimo-v2.5"
     )
 
     public static func openAICompatible(endpointURL: URL, model: String) -> ProviderRuntimeSettings {

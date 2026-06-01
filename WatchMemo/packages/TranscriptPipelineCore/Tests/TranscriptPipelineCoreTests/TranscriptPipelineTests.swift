@@ -80,7 +80,7 @@ struct TranscriptPipelineTests {
 
         #expect(settings.selectedProvider == .fake)
         #expect(settings.endpointURL == URL(string: "https://api.openai.com/v1")!)
-        #expect(settings.model == "mimo-v2.5-pro")
+        #expect(settings.model == "mimo-v2.5")
     }
 
     @Test("provider runtime settings create OpenAI compatible configuration")
@@ -113,7 +113,7 @@ struct TranscriptPipelineTests {
         let provider = OpenAICompatibleTranscriptProvider(
             configuration: .openAICompatible(
                 endpointURL: URL(string: "https://api.example.com/v1")!,
-                model: "mimo-v2.5-pro"
+                model: "mimo-v2.5"
             ),
             apiKey: "test-key",
             httpClient: client,
@@ -129,12 +129,37 @@ struct TranscriptPipelineTests {
         #expect(client.capturedRequest?.value(forHTTPHeaderField: "Content-Type") == "application/json")
 
         let body = try #require(client.capturedBodyString)
-        #expect(body.contains(#""model":"mimo-v2.5-pro""#))
+        #expect(body.contains(#""model":"mimo-v2.5""#))
         #expect(body.contains(#""type":"input_audio""#))
-        #expect(body.contains(#""format":"m4a""#))
-        #expect(body.contains(#""data":"YXVkaW8tYnl0ZXM=""#))
+        #expect(!body.contains(#""format":"m4a""#))
+        #expect(body.contains(#""data":"data:audio/m4a;base64,YXVkaW8tYnl0ZXM=""#))
         #expect(body.contains("测试整理指令"))
         #expect(body.contains("会议记录"))
+    }
+
+    @Test("OpenAI compatible provider parses reasoning content when message content is empty")
+    func openAICompatibleProviderParsesReasoningContentFallback() async throws {
+        let root = try makeTemporaryDirectory()
+        let audioURL = root.appendingPathComponent("sample.m4a")
+        try Data("audio-bytes".utf8).write(to: audioURL)
+        let client = CapturingTranscriptHTTPClient(
+            response: HTTPURLResponse(
+                url: URL(string: "https://api.example.com/v1/chat/completions")!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!,
+            data: Data(#"{"choices":[{"message":{"content":"","reasoning_content":"会议结论：先验证手表录音到 iPhone。"}}]}"#.utf8)
+        )
+        let provider = OpenAICompatibleTranscriptProvider(
+            configuration: .openAICompatible(endpointURL: URL(string: "https://api.example.com/v1")!),
+            apiKey: "test-key",
+            httpClient: client
+        )
+
+        let transcript = try await provider.transcribe(audioFileURL: audioURL, hint: nil)
+
+        #expect(transcript == "会议结论：先验证手表录音到 iPhone。")
     }
 
     @Test("OpenAI compatible provider throws on non-success responses")

@@ -95,9 +95,23 @@ settings UI or real API adapter.
 protocol by sending JSON `POST /chat/completions` requests with base64 audio to
 an OpenAI-compatible endpoint.
 
-The current default model is `mimo-v2.5-pro`, because this phase assumes the
+The current default model is `mimo-v2.5`, because this phase assumes the
 model can directly understand audio and return cleaned, knowledge-base-ready
 text. This is different from a speech-to-text-only provider.
+
+For MiMo compatibility, the audio content part uses a data URI:
+
+```json
+{
+  "type": "input_audio",
+  "input_audio": {
+    "data": "data:audio/m4a;base64,<base64 audio>"
+  }
+}
+```
+
+The adapter also accepts provider responses where the cleaned note appears in
+`message.reasoning_content` while `message.content` is empty.
 
 The adapter is unit-tested with an injectable `TranscriptHTTPClient`; package
 tests do not make network calls and do not require an API key.
@@ -114,7 +128,7 @@ Settings:
 
 - Provider mode: `Fake` or `Audio understanding`.
 - Endpoint: defaults to `https://api.openai.com/v1`.
-- Model: defaults to `mimo-v2.5-pro`.
+- Model: defaults to `mimo-v2.5`.
 - API key: stored in Keychain by `APIKeyStore`.
 
 Non-secret provider settings are stored in `UserDefaults` by
@@ -122,6 +136,9 @@ Non-secret provider settings are stored in `UserDefaults` by
 
 The app still starts in Fake mode by default. Selecting audio understanding
 without a saved API key will show an error when generating a draft.
+
+The status/error area includes a copy button so real-device provider errors can
+be pasted back into the development thread without retyping.
 
 ## Real Device Signing
 

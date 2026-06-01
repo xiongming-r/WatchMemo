@@ -36,7 +36,7 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable, Sendable 
 
     public static func openAICompatible(
         endpointURL: URL = URL(string: "https://api.openai.com/v1")!,
-        model: String = "mimo-v2.5-pro"
+        model: String = "mimo-v2.5"
     ) -> ProviderConfiguration {
         ProviderConfiguration(
             kind: .openAICompatible,

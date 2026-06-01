@@ -71,7 +71,7 @@ public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
             throw OpenAICompatibleTranscriptProviderError.invalidConfiguration
         }
 
-        let model = configuration.model ?? "mimo-v2.5-pro"
+        let model = configuration.model ?? "mimo-v2.5"
         let requestURL = endpointURL
             .appendingPathComponent("chat")
             .appendingPathComponent("completions")
@@ -106,6 +106,7 @@ public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
         let format = audioFileURL.pathExtension.lowercased().isEmpty
             ? "m4a"
             : audioFileURL.pathExtension.lowercased()
+        let dataURI = "data:\(mimeType(for: format));base64,\(fileData.base64EncodedString())"
         let userText = [
             "录音线索：\(hint ?? audioFileURL.lastPathComponent)",
             "请根据音频内容生成最终记录文本。"
@@ -119,19 +120,24 @@ public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
                     role: "user",
                     content: .parts([
                         .text(userText),
-                        .inputAudio(data: fileData.base64EncodedString(), format: format)
+                        .inputAudio(dataURI: dataURI)
                     ])
                 )
             ],
             temperature: 0.1
         )
 
-        return try JSONEncoder().encode(payload)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.withoutEscapingSlashes]
+        return try encoder.encode(payload)
     }
 
     private func transcriptText(from data: Data) throws -> String? {
         let response = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-        return response.choices.first?.message.content
+        let message = response.choices.first?.message
+        return [message?.content, message?.reasoningContent]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first { !$0.isEmpty }
     }
 
     private func errorMessage(from data: Data) -> String {
@@ -140,6 +146,21 @@ public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
         }
 
         return String(data: data, encoding: .utf8) ?? "Unknown provider error"
+    }
+
+    private func mimeType(for fileExtension: String) -> String {
+        switch fileExtension {
+        case "m4a":
+            return "audio/m4a"
+        case "mp3", "mpeg":
+            return "audio/mpeg"
+        case "wav":
+            return "audio/wav"
+        case "caf":
+            return "audio/x-caf"
+        default:
+            return "application/octet-stream"
+        }
     }
 }
 
@@ -179,24 +200,29 @@ private struct ChatContentPart: Encodable {
         ChatContentPart(type: "text", text: text, input_audio: nil)
     }
 
-    static func inputAudio(data: String, format: String) -> ChatContentPart {
+    static func inputAudio(dataURI: String) -> ChatContentPart {
         ChatContentPart(
             type: "input_audio",
             text: nil,
-            input_audio: InputAudio(data: data, format: format)
+            input_audio: InputAudio(data: dataURI)
         )
     }
 }
 
 private struct InputAudio: Encodable {
     let data: String
-    let format: String
 }
 
 private struct ChatCompletionResponse: Decodable {
     struct Choice: Decodable {
         struct Message: Decodable {
             let content: String?
+            let reasoningContent: String?
+
+            enum CodingKeys: String, CodingKey {
+                case content
+                case reasoningContent = "reasoning_content"
+            }
         }
 
         let message: Message
