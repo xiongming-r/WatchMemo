@@ -1,6 +1,8 @@
 import Foundation
 
 public final class PhoneInboxStore {
+    public static let defaultRootDirectoryName = "WatchMemoInbox"
+
     private let fileManager: FileManager
     private let rootDirectory: URL
     private let audioDirectory: URL
@@ -15,7 +17,10 @@ public final class PhoneInboxStore {
 
     public convenience init(fileManager: FileManager = .default) {
         let documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        self.init(rootDirectory: documents.appendingPathComponent("Inbox", isDirectory: true), fileManager: fileManager)
+        self.init(
+            rootDirectory: documents.appendingPathComponent(Self.defaultRootDirectoryName, isDirectory: true),
+            fileManager: fileManager
+        )
     }
 
     public func importRecording(fileURL: URL, metadata: InboxImportMetadata) throws -> InboxRecording {

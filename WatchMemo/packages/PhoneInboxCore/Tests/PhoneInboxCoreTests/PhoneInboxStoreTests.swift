@@ -4,6 +4,11 @@ import Testing
 
 @Suite("Phone inbox store")
 struct PhoneInboxStoreTests {
+    @Test("default inbox directory avoids the iOS reserved Inbox folder")
+    func defaultInboxDirectoryAvoidsReservedInboxName() {
+        #expect(PhoneInboxStore.defaultRootDirectoryName == "WatchMemoInbox")
+    }
+
     @Test("importing a recording copies audio and persists metadata")
     func importRecordingPersistsMetadata() throws {
         let root = try makeTemporaryDirectory()
