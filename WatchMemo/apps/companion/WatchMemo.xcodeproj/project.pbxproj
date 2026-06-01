@@ -28,6 +28,10 @@
 		B2000000000000000000003D /* TranscriptDraftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000003E /* TranscriptDraftStore.swift */; };
 		B2000000000000000000003F /* ProviderConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000004A /* ProviderConfiguration.swift */; };
 		B2000000000000000000004B /* OpenAICompatibleTranscriptProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000004C /* OpenAICompatibleTranscriptProvider.swift */; };
+		B2000000000000000000004D /* ProviderRuntimeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000004E /* ProviderRuntimeSettings.swift */; };
+		B2000000000000000000004F /* APIKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000005A /* APIKeyStore.swift */; };
+		B2000000000000000000005B /* ProviderSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000005C /* ProviderSettingsStore.swift */; };
+		B2000000000000000000005D /* ProviderSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000005E /* ProviderSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +58,10 @@
 		B2000000000000000000003E /* TranscriptDraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptDraftStore.swift; sourceTree = "<group>"; };
 		B2000000000000000000004A /* ProviderConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderConfiguration.swift; sourceTree = "<group>"; };
 		B2000000000000000000004C /* OpenAICompatibleTranscriptProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleTranscriptProvider.swift; sourceTree = "<group>"; };
+		B2000000000000000000004E /* ProviderRuntimeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderRuntimeSettings.swift; sourceTree = "<group>"; };
+		B2000000000000000000005A /* APIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyStore.swift; sourceTree = "<group>"; };
+		B2000000000000000000005C /* ProviderSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderSettingsStore.swift; sourceTree = "<group>"; };
+		B2000000000000000000005E /* ProviderSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +101,9 @@
 				B2000000000000000000002C /* PhoneConnectivityReceiver.swift */,
 				B2000000000000000000002D /* PhoneInboxViewModel.swift */,
 				B2000000000000000000002E /* AudioPlaybackController.swift */,
+				B2000000000000000000005A /* APIKeyStore.swift */,
+				B2000000000000000000005C /* ProviderSettingsStore.swift */,
+				B2000000000000000000005E /* ProviderSettingsView.swift */,
 			);
 			path = WatchMemo;
 			sourceTree = "<group>";
@@ -116,6 +127,7 @@
 				B2000000000000000000003E /* TranscriptDraftStore.swift */,
 				B2000000000000000000004A /* ProviderConfiguration.swift */,
 				B2000000000000000000004C /* OpenAICompatibleTranscriptProvider.swift */,
+				B2000000000000000000004E /* ProviderRuntimeSettings.swift */,
 			);
 			path = ../../packages/TranscriptPipelineCore/Sources/TranscriptPipelineCore;
 			sourceTree = "<group>";
@@ -253,6 +265,10 @@
 				B2000000000000000000003D /* TranscriptDraftStore.swift in Sources */,
 				B2000000000000000000003F /* ProviderConfiguration.swift in Sources */,
 				B2000000000000000000004B /* OpenAICompatibleTranscriptProvider.swift in Sources */,
+				B2000000000000000000004D /* ProviderRuntimeSettings.swift in Sources */,
+				B2000000000000000000004F /* APIKeyStore.swift in Sources */,
+				B2000000000000000000005B /* ProviderSettingsStore.swift in Sources */,
+				B2000000000000000000005D /* ProviderSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

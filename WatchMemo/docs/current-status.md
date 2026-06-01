@@ -1,19 +1,23 @@
 # Current Status
 
-Last updated: 2026-05-30 16:25 Asia/Shanghai
+Last updated: 2026-06-01 10:15 Asia/Shanghai
 
 ## Current Phase
 
 Phase 0 is complete.
 
-Latest completed checkpoint:
+Latest local checkpoint:
+
+- `docs/phase-logs/phase-7-real-api-device-validation.md`
+
+Latest fully completed checkpoint:
 
 - `docs/phase-logs/phase-6-openai-compatible-provider.md`
 
 Next active phase:
 
-- Provider settings and secure API key handling, while real paired-device
-  WatchConnectivity validation remains deferred.
+- Real iPhone + Apple Watch validation for provider settings, API key storage,
+  real transcription, and WatchConnectivity.
 
 ## Product Direction
 
@@ -48,11 +52,13 @@ Continue with provider and persistence work:
 - Transcript drafts now persist locally and reload on app startup.
 - Provider configuration now defines fake, OpenAI-compatible, and local command
   provider kinds.
-- An OpenAI-compatible transcription provider adapter now exists and is covered
-  by request/response tests.
-- Next, add provider settings and secure API key storage before enabling real
-  network calls from the app.
-- Real WatchConnectivity file transfer still requires paired hardware later.
+- Provider settings and Keychain API key storage now exist in the iPhone app.
+- The iPhone app can select fake or OpenAI-compatible provider.
+- Real network calls are enabled only when OpenAI-compatible is selected and an
+  API key is saved.
+- Generic iOS device command-line build is blocked until a Development Team is
+  selected in Xcode.
+- Phase 7 is not complete until the user validates on real hardware.
 
 ## Guardrails
 
@@ -95,3 +101,6 @@ Continue with provider and persistence work:
 - 2026-05-30: Added Phase 6 OpenAI-compatible remote transcription adapter.
   Tests validate multipart request shape, bearer authorization, JSON response
   parsing, and non-2xx failure handling. The app still defaults to fake provider.
+- 2026-06-01: Added Phase 7 provider settings UI, Keychain API key storage, and
+  runtime provider selection. Local tests and simulator builds passed. Device
+  signing and true-device validation are still pending.

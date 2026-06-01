@@ -23,11 +23,24 @@ public final class URLSessionTranscriptHTTPClient: TranscriptHTTPClient {
     }
 }
 
-public enum OpenAICompatibleTranscriptProviderError: Error, Equatable {
+public enum OpenAICompatibleTranscriptProviderError: LocalizedError, Equatable {
     case invalidConfiguration
     case invalidResponse
     case requestFailed(statusCode: Int, message: String)
     case missingTranscriptText
+
+    public var errorDescription: String? {
+        switch self {
+        case .invalidConfiguration:
+            return "OpenAI-compatible provider settings are incomplete"
+        case .invalidResponse:
+            return "Provider returned an invalid response"
+        case .requestFailed(let statusCode, let message):
+            return "Provider request failed (\(statusCode)): \(message)"
+        case .missingTranscriptText:
+            return "Provider response did not include transcript text"
+        }
+    }
 }
 
 public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {

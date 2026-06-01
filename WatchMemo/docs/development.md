@@ -102,6 +102,56 @@ The iPhone app target compiles the adapter, but still defaults to
 `FakeTranscriptProvider` until secure API key storage and provider settings are
 implemented.
 
+## Real API Provider Settings
+
+The iPhone app now has a gear button that opens provider settings.
+
+Settings:
+
+- Provider mode: `Fake` or `OpenAI-compatible`.
+- Endpoint: defaults to `https://api.openai.com/v1`.
+- Model: defaults to `gpt-4o-transcribe`.
+- API key: stored in Keychain by `APIKeyStore`.
+
+Non-secret provider settings are stored in `UserDefaults` by
+`ProviderSettingsStore`.
+
+The app still starts in Fake mode by default. Selecting OpenAI-compatible without
+a saved API key will show an error when generating a draft.
+
+## Real Device Signing
+
+Generic iOS device build currently fails until a Development Team is selected:
+
+```sh
+xcodebuild \
+  -project WatchMemo/apps/companion/WatchMemo.xcodeproj \
+  -scheme WatchMemo \
+  -destination 'generic/platform=iOS' \
+  build
+```
+
+Known result before signing setup:
+
+```text
+Signing for "WatchMemo" requires a development team.
+```
+
+Open the project in Xcode and set Signing & Capabilities for real-device
+validation.
+
+## Phase 7 Real-Device Checklist
+
+1. Select a Development Team in Xcode.
+2. Run `WatchMemo` on a real iPhone.
+3. Open the gear button and select OpenAI-compatible.
+4. Save endpoint, model, and API key.
+5. Add a recording to the inbox.
+6. Tap the sparkle button.
+7. Confirm a real transcript draft appears.
+8. Restart the app and confirm the draft remains.
+9. Run the watch app on a real Apple Watch and validate recording transfer.
+
 ## Companion Debug Recording Self-Test
 
 After building and installing the companion watch app to a booted watchOS

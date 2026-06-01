@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var inbox: PhoneInboxViewModel
     @StateObject private var playback = AudioPlaybackController()
+    @State private var isShowingProviderSettings = false
 
     var body: some View {
         NavigationStack {
@@ -37,8 +38,8 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("WatchMemo")
-#if DEBUG
             .toolbar {
+#if DEBUG
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         inbox.importSampleRecording()
@@ -47,8 +48,20 @@ struct ContentView: View {
                     }
                     .accessibilityLabel("Import sample")
                 }
-            }
 #endif
+
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isShowingProviderSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel("Provider settings")
+                }
+            }
+            .sheet(isPresented: $isShowingProviderSettings) {
+                ProviderSettingsView(inbox: inbox)
+            }
         }
     }
 }

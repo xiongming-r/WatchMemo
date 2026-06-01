@@ -74,6 +74,28 @@ struct TranscriptPipelineTests {
         #expect(configuration.commandPath == nil)
     }
 
+    @Test("provider runtime settings default to fake provider")
+    func providerRuntimeSettingsDefaultToFake() {
+        let settings = ProviderRuntimeSettings.default
+
+        #expect(settings.selectedProvider == .fake)
+        #expect(settings.endpointURL == URL(string: "https://api.openai.com/v1")!)
+        #expect(settings.model == "gpt-4o-transcribe")
+    }
+
+    @Test("provider runtime settings create OpenAI compatible configuration")
+    func providerRuntimeSettingsCreateOpenAICompatibleConfiguration() {
+        let settings = ProviderRuntimeSettings.openAICompatible(
+            endpointURL: URL(string: "https://api.example.com/v1")!,
+            model: "custom-transcribe"
+        )
+
+        #expect(settings.selectedProvider == .openAICompatible)
+        #expect(settings.providerConfiguration.kind == .openAICompatible)
+        #expect(settings.providerConfiguration.endpointURL == URL(string: "https://api.example.com/v1")!)
+        #expect(settings.providerConfiguration.model == "custom-transcribe")
+    }
+
     @Test("OpenAI compatible provider sends audio transcription request and parses text")
     func openAICompatibleProviderSendsRequestAndParsesText() async throws {
         let root = try makeTemporaryDirectory()

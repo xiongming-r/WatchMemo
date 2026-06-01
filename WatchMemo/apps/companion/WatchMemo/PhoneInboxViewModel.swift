@@ -6,24 +6,28 @@ final class PhoneInboxViewModel: ObservableObject {
     @Published private(set) var recordings: [InboxRecording] = []
     @Published private(set) var transcriptDrafts: [InboxRecording.ID: TranscriptDraft] = [:]
     @Published private(set) var processingTranscriptIDs: Set<InboxRecording.ID> = []
+    @Published private(set) var providerSettings: ProviderRuntimeSettings
+    @Published private(set) var hasSavedAPIKey: Bool
     @Published private(set) var statusText = "Loading inbox"
 
     private let store: PhoneInboxStore
     private let draftStore: TranscriptDraftStore
+    private let providerSettingsStore: ProviderSettingsStore
+    private let apiKeyStore: APIKeyStore
     private let receiver: PhoneConnectivityReceiver
-    private let transcriptPipeline: TranscriptPipeline
 
     init(
         store: PhoneInboxStore = PhoneInboxStore(),
         draftStore: TranscriptDraftStore = TranscriptDraftStore(),
-        transcriptPipeline: TranscriptPipeline = TranscriptPipeline(
-            provider: FakeTranscriptProvider(),
-            cleaner: ConservativeTranscriptCleaner()
-        )
+        providerSettingsStore: ProviderSettingsStore = ProviderSettingsStore(),
+        apiKeyStore: APIKeyStore = APIKeyStore()
     ) {
         self.store = store
         self.draftStore = draftStore
-        self.transcriptPipeline = transcriptPipeline
+        self.providerSettingsStore = providerSettingsStore
+        self.apiKeyStore = apiKeyStore
+        self.providerSettings = providerSettingsStore.load()
+        self.hasSavedAPIKey = apiKeyStore.hasKey()
         self.receiver = PhoneConnectivityReceiver(store: store)
 
         receiver.onImported = { [weak self] _ in
@@ -52,6 +56,7 @@ final class PhoneInboxViewModel: ObservableObject {
         }
 
         do {
+            let transcriptPipeline = try makeTranscriptPipeline()
             let draft = try await transcriptPipeline.makeDraft(
                 recordingID: recording.id,
                 audioFileURL: recording.fileURL,
@@ -63,6 +68,25 @@ final class PhoneInboxViewModel: ObservableObject {
         } catch {
             statusText = "Draft failed: \(error.localizedDescription)"
         }
+    }
+
+    func saveProviderSettings(_ settings: ProviderRuntimeSettings, apiKey: String) throws {
+        let trimmedKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedKey.isEmpty {
+            try apiKeyStore.save(trimmedKey)
+        }
+
+        try providerSettingsStore.save(settings)
+        providerSettings = settings
+        hasSavedAPIKey = apiKeyStore.hasKey()
+        statusText = settings.selectedProvider == .openAICompatible
+            ? "OpenAI-compatible provider selected"
+            : "Fake provider selected"
+    }
+
+    func deleteAPIKey() throws {
+        try apiKeyStore.delete()
+        hasSavedAPIKey = apiKeyStore.hasKey()
     }
 
 #if DEBUG
@@ -108,6 +132,40 @@ final class PhoneInboxViewModel: ObservableObject {
             }
         } catch {
             statusText = "Draft load failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func makeTranscriptPipeline() throws -> TranscriptPipeline {
+        let provider: any TranscriptProvider
+
+        switch providerSettings.selectedProvider {
+        case .fake:
+            provider = FakeTranscriptProvider()
+        case .openAICompatible:
+            guard let apiKey = try apiKeyStore.load(), !apiKey.isEmpty else {
+                throw ProviderSelectionError.missingAPIKey
+            }
+
+            provider = OpenAICompatibleTranscriptProvider(
+                configuration: providerSettings.providerConfiguration,
+                apiKey: apiKey
+            )
+        }
+
+        return TranscriptPipeline(
+            provider: provider,
+            cleaner: ConservativeTranscriptCleaner()
+        )
+    }
+}
+
+private enum ProviderSelectionError: LocalizedError {
+    case missingAPIKey
+
+    var errorDescription: String? {
+        switch self {
+        case .missingAPIKey:
+            return "OpenAI-compatible provider needs an API key"
         }
     }
 }
