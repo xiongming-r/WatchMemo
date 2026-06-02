@@ -111,6 +111,18 @@ xcodebuild \
   build
 ```
 
+## True-Device Validation
+
+Passed on 2026-06-02:
+
+1. Built the Phase 10 app for the real iPhone destination.
+2. Installed and launched the updated iPhone app.
+3. Installed and launched the updated Apple Watch app.
+4. User confirmed the normal watch recording to iPhone to AI draft flow still
+   works.
+5. User confirmed failure/retry behavior works.
+6. User confirmed app restart recovery behavior works.
+
 ## Next Risks
 
 - Determine MiMo's practical maximum audio duration and payload size.

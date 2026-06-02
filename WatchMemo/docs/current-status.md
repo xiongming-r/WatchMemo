@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-02 14:35 Asia/Shanghai
+Last updated: 2026-06-02 14:45 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,12 +8,12 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-9-obsidian-export.md`
+- `docs/phase-logs/phase-10-transcription-reliability.md`
 
 Current active phase:
 
-- Phase 10 transcription reliability: persist iPhone-side AI processing state,
-  expose failure/retry status, and prevent interrupted drafts from being lost.
+- Ready to start Phase 11. Recommended next phase: long-recording readiness,
+  beginning with provider/audio length limits and chunk-safe local state.
 
 ## Product Direction
 
@@ -86,9 +86,9 @@ Continue with provider and persistence work:
 - Phase 9 Obsidian Export v0 passed true-device validation on 2026-06-02: the
   iPhone app opened/created a note in iPhone Obsidian from a real watch
   recording's AI-generated text.
-- Phase 10 is in local development: iPhone-side AI processing state is persisted
-  per recording, including status, error message, attempt count, and retryable
-  interrupted-processing recovery.
+- Phase 10 true-device validation passed on 2026-06-02: iPhone-side AI
+  processing state is persisted per recording, including status, error message,
+  attempt count, failure retry, and interrupted-processing recovery.
 
 ## Guardrails
 
