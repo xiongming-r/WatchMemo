@@ -1,23 +1,20 @@
 # Current Status
 
-Last updated: 2026-06-01 18:50 Asia/Shanghai
+Last updated: 2026-06-02 09:55 Asia/Shanghai
 
 ## Current Phase
 
 Phase 0 is complete.
 
-Latest local checkpoint:
+Latest completed checkpoint:
 
 - `docs/phase-logs/phase-8-structured-notes.md`
 
-Latest fully completed checkpoint:
-
-- `docs/phase-logs/phase-7-real-api-device-validation.md`
-
 Next active phase:
 
-- True-device validation for Phase 8 structured notes and Markdown copy after
-  the user's iPhone and Apple Watch are back in the development environment.
+- Phase 9 note delivery/export layer: improve the iPhone note detail/export
+  experience and prepare a destination boundary before integrating Obsidian or
+  another knowledge-base target.
 
 ## Product Direction
 
@@ -80,11 +77,13 @@ Continue with provider and persistence work:
   WatchConnectivity completion callback before marking a recording transferred.
 - Phase 7 is complete: the user confirmed real Apple Watch recording,
   iPhone receipt, and successful AI text output.
-- Phase 8 local development is complete: new AI drafts now include a
+- Phase 8 is complete: new AI drafts now include a
   persisted structured note with title, body, summary, action items, tags, and
   Markdown; the iPhone row can copy Markdown.
-- Phase 8 still needs true-device validation because the user's iPhone and
-  Apple Watch left the development environment during implementation.
+- On 2026-06-02, the updated iPhone and Watch apps were rebuilt, installed, and
+  launched on real devices. The user confirmed true-device validation passed:
+  Apple Watch recording reached iPhone, AI processing produced structured note
+  output, and Markdown copy was available.
 
 ## Guardrails
 
@@ -164,3 +163,8 @@ Continue with provider and persistence work:
   tests pass, iOS Simulator build passes, watchOS generic device build passes,
   and iOS generic device build passes after rerunning separately with its own
   DerivedData path.
+- 2026-06-02 09:55: Phase 8 true-device validation passed. The command-line
+  build for the real iPhone destination succeeded, `ValidateEmbeddedBinary`
+  confirmed the embedded Watch app, both apps installed and launched on the
+  user's real iPhone and Apple Watch, and the user confirmed the end-to-end
+  structured note flow works on devices.

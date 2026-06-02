@@ -2,6 +2,8 @@
 
 Date: 2026-06-01
 
+Status: Complete as of 2026-06-02 09:55 Asia/Shanghai
+
 ## Goal
 
 Turn successful AI text output into a persisted note-oriented object that can be
@@ -92,22 +94,42 @@ Note:
   was an Xcode concurrency issue from sharing the same DerivedData path, not a
   product build failure.
 
-## Pending Real-Device Validation
+## Real-Device Validation
 
-The user's iPhone and Apple Watch were away from the development environment
-during this phase, so true-device validation is pending.
+Completed on 2026-06-02 with the user's real iPhone and Apple Watch.
 
-When devices are available again:
+Computer-side setup:
 
-1. Install the updated iPhone app.
-2. Install or refresh the updated Watch app.
-3. Record a short phrase on Apple Watch.
-4. Confirm the iPhone receives the recording.
-5. Run AI processing.
-6. Confirm the row shows a title/summary.
-7. Tap `Copy Markdown`.
-8. Paste into Notes or another text field and confirm the Markdown includes
-   title, summary, body, and any extracted action items/tags.
+1. Built the iPhone app for the real iPhone destination:
+
+   ```sh
+   xcodebuild \
+     -project WatchMemo/apps/companion/WatchMemo.xcodeproj \
+     -scheme WatchMemo \
+     -destination id=00008130-000E61100E01001C \
+     -allowProvisioningUpdates \
+     -derivedDataPath /private/tmp/WatchMemoRealDevicePhase8 \
+     build
+   ```
+
+2. The build succeeded.
+3. Xcode ran `ValidateEmbeddedBinary` for
+   `WatchMemo.app/Watch/WatchMemoWatch.app`, confirming the iPhone app embeds
+   the Watch app correctly.
+4. Installed and launched the iPhone app on the real iPhone.
+5. Installed and launched the Watch app on the real Apple Watch.
+
+User-side validation:
+
+1. Recorded on Apple Watch.
+2. Confirmed the iPhone received the recording.
+3. Ran AI processing on the iPhone.
+4. Confirmed structured note output appeared.
+5. Confirmed Markdown copy is available.
+
+Result:
+
+- Phase 8 true-device validation passed.
 
 ## Remaining Risks
 
