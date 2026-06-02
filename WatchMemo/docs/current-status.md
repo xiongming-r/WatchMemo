@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-02 12:05 Asia/Shanghai
+Last updated: 2026-06-02 14:35 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,13 +8,12 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-8-structured-notes.md`
+- `docs/phase-logs/phase-9-obsidian-export.md`
 
 Current active phase:
 
-- Phase 9 note delivery/export layer: improve the iPhone note detail/export
-  experience and prepare a destination boundary before integrating Obsidian or
-  another knowledge-base target.
+- Phase 10 transcription reliability: persist iPhone-side AI processing state,
+  expose failure/retry status, and prevent interrupted drafts from being lost.
 
 ## Product Direction
 
@@ -84,10 +83,12 @@ Continue with provider and persistence work:
   launched on real devices. The user confirmed true-device validation passed:
   Apple Watch recording reached iPhone, AI processing produced structured note
   output, and Markdown copy was available.
-- Phase 9 Obsidian Export v0 is in local development: the iPhone app can store
-  Obsidian settings and generate `obsidian://new` export URLs for short notes.
-  Long Markdown is refused for URI export and copied instead, preserving content
-  while leaving file-based long-note export for a later phase.
+- Phase 9 Obsidian Export v0 passed true-device validation on 2026-06-02: the
+  iPhone app opened/created a note in iPhone Obsidian from a real watch
+  recording's AI-generated text.
+- Phase 10 is in local development: iPhone-side AI processing state is persisted
+  per recording, including status, error message, attempt count, and retryable
+  interrupted-processing recovery.
 
 ## Guardrails
 
@@ -176,3 +177,11 @@ Continue with provider and persistence work:
   tests cover URL generation and long-content refusal. `TranscriptPipelineCore`
   and `PhoneInboxCore` tests still pass. iOS Simulator, watchOS generic, and
   iOS generic builds pass. True-device Obsidian validation is pending.
+- 2026-06-02 14:20: Phase 9 true-device Obsidian validation passed. The updated
+  iPhone and Watch apps installed and launched on real devices, and the user
+  confirmed a real watch recording's AI-generated text exported into iPhone
+  Obsidian.
+- 2026-06-02 14:35: Phase 10 transcription reliability v0 is locally validated
+  so far. `PhoneInboxCore` now persists draft processing state, error messages,
+  attempt counts, and interrupted-processing recovery. `PhoneInboxCore` tests
+  pass and the iOS Simulator app build passes.

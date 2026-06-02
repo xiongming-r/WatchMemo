@@ -113,13 +113,19 @@ xcodebuild \
   build
 ```
 
-## Pending True-Device Validation
+## True-Device Validation
 
-1. Install the updated iPhone app.
-2. Configure the Obsidian vault/folder in the iPhone app.
-3. Generate a short AI note from a real Apple Watch recording.
-4. Tap `Export Obsidian`.
-5. Confirm Obsidian opens and creates the note in the configured location.
-6. Confirm content is complete for short notes.
-7. Test a deliberately long note later to verify fallback behavior copies
-   Markdown instead of attempting an unsafe URL export.
+Passed on 2026-06-02:
+
+1. Installed and launched the updated iPhone app.
+2. Installed and launched the updated Apple Watch app.
+3. Confirmed a real Apple Watch recording reached the iPhone.
+4. Confirmed the configured AI provider generated note text.
+5. Tapped `Export Obsidian`.
+6. User confirmed the note opened/created successfully in iPhone Obsidian.
+
+Still pending for a later reliability phase:
+
+- Test a deliberately long note to verify fallback behavior copies Markdown
+  instead of attempting an unsafe URL export.
+- Replace URI export with file-based or plugin/API-based export for long notes.

@@ -47,6 +47,7 @@ final class PhoneInboxViewModel: ObservableObject {
 
         reload(status: nil)
         loadDrafts()
+        recoverInterruptedTranscriptions()
     }
 
     func start() {
@@ -64,6 +65,15 @@ final class PhoneInboxViewModel: ObservableObject {
         }
 
         do {
+            try store.updateTranscriptionState(
+                recordingID: recording.id,
+                status: .transcribing,
+                errorMessage: nil,
+                attemptedAt: Date(),
+                incrementsAttemptCount: true
+            )
+            reload(status: "Transcribing recording")
+
             let transcriptPipeline = try makeTranscriptPipeline()
             let draft = try await transcriptPipeline.makeDraft(
                 recordingID: recording.id,
@@ -71,10 +81,24 @@ final class PhoneInboxViewModel: ObservableObject {
                 hint: recording.originalFileName
             )
             try draftStore.save(draft)
+            try store.updateTranscriptionState(
+                recordingID: recording.id,
+                status: .draftReady,
+                errorMessage: nil,
+                attemptedAt: Date(),
+                incrementsAttemptCount: false
+            )
             transcriptDrafts[recording.id] = draft
-            statusText = "Draft ready"
+            reload(status: "Draft ready")
         } catch {
-            statusText = "Draft failed: \(error.localizedDescription)"
+            try? store.updateTranscriptionState(
+                recordingID: recording.id,
+                status: .transcriptionFailed,
+                errorMessage: error.localizedDescription,
+                attemptedAt: Date(),
+                incrementsAttemptCount: false
+            )
+            reload(status: "Draft failed: \(error.localizedDescription)")
         }
     }
 
@@ -185,6 +209,21 @@ final class PhoneInboxViewModel: ObservableObject {
             }
         } catch {
             statusText = "Draft load failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func recoverInterruptedTranscriptions() {
+        do {
+            let recoveredCount = try store.markInterruptedTranscriptionsFailed(
+                message: "Interrupted before finishing. Tap retry.",
+                at: Date()
+            )
+
+            if recoveredCount > 0 {
+                reload(status: "\(recoveredCount) interrupted draft\(recoveredCount == 1 ? "" : "s") need retry")
+            }
+        } catch {
+            statusText = "Recovery check failed: \(error.localizedDescription)"
         }
     }
 

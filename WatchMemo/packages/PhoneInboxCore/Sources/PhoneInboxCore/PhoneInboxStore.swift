@@ -65,6 +65,49 @@ public final class PhoneInboxStore {
         return recordings.map(recordingWithCurrentFileURL)
     }
 
+    public func updateTranscriptionState(
+        recordingID: InboxRecording.ID,
+        status: InboxRecording.Status,
+        errorMessage: String?,
+        attemptedAt: Date,
+        incrementsAttemptCount: Bool
+    ) throws {
+        var recordings = try loadRecordings()
+
+        guard let index = recordings.firstIndex(where: { $0.id == recordingID }) else {
+            return
+        }
+
+        recordings[index].status = status
+        recordings[index].transcriptionErrorMessage = errorMessage
+        recordings[index].lastTranscriptionAttemptAt = attemptedAt
+
+        if incrementsAttemptCount {
+            recordings[index].transcriptionAttemptCount += 1
+        }
+
+        try save(recordings)
+    }
+
+    public func markInterruptedTranscriptionsFailed(message: String, at date: Date) throws -> Int {
+        var recordings = try loadRecordings()
+        var changedCount = 0
+
+        for index in recordings.indices where recordings[index].status == .transcribing {
+            recordings[index].status = .transcriptionFailed
+            recordings[index].transcriptionErrorMessage = message
+            recordings[index].lastTranscriptionAttemptAt = date
+            changedCount += 1
+        }
+
+        guard changedCount > 0 else {
+            return 0
+        }
+
+        try save(recordings)
+        return changedCount
+    }
+
     private func ensureDirectoriesExist() throws {
         try fileManager.createDirectory(at: audioDirectory, withIntermediateDirectories: true)
     }
@@ -79,6 +122,9 @@ public final class PhoneInboxStore {
             durationSeconds: recording.durationSeconds,
             source: recording.source,
             status: recording.status,
+            transcriptionErrorMessage: recording.transcriptionErrorMessage,
+            transcriptionAttemptCount: recording.transcriptionAttemptCount,
+            lastTranscriptionAttemptAt: recording.lastTranscriptionAttemptAt,
             fileURL: audioDirectory.appendingPathComponent(recording.storedFileName)
         )
     }

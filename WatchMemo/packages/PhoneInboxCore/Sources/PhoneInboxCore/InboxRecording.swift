@@ -8,6 +8,9 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
 
     public enum Status: String, Codable, Equatable {
         case readyForTranscription
+        case transcribing
+        case draftReady
+        case transcriptionFailed
         case transcribingLater
     }
 
@@ -19,6 +22,9 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
     public let durationSeconds: TimeInterval
     public let source: Source
     public var status: Status
+    public var transcriptionErrorMessage: String?
+    public var transcriptionAttemptCount: Int
+    public var lastTranscriptionAttemptAt: Date?
     public let fileURL: URL
 
     public init(
@@ -30,6 +36,9 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
         durationSeconds: TimeInterval,
         source: Source,
         status: Status,
+        transcriptionErrorMessage: String? = nil,
+        transcriptionAttemptCount: Int = 0,
+        lastTranscriptionAttemptAt: Date? = nil,
         fileURL: URL
     ) {
         self.id = id
@@ -40,7 +49,42 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
         self.durationSeconds = durationSeconds
         self.source = source
         self.status = status
+        self.transcriptionErrorMessage = transcriptionErrorMessage
+        self.transcriptionAttemptCount = transcriptionAttemptCount
+        self.lastTranscriptionAttemptAt = lastTranscriptionAttemptAt
         self.fileURL = fileURL
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case originalFileName
+        case storedFileName
+        case createdAt
+        case importedAt
+        case durationSeconds
+        case source
+        case status
+        case transcriptionErrorMessage
+        case transcriptionAttemptCount
+        case lastTranscriptionAttemptAt
+        case fileURL
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decode(UUID.self, forKey: .id)
+        originalFileName = try container.decode(String.self, forKey: .originalFileName)
+        storedFileName = try container.decode(String.self, forKey: .storedFileName)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        importedAt = try container.decode(Date.self, forKey: .importedAt)
+        durationSeconds = try container.decode(TimeInterval.self, forKey: .durationSeconds)
+        source = try container.decode(Source.self, forKey: .source)
+        status = try container.decode(Status.self, forKey: .status)
+        transcriptionErrorMessage = try container.decodeIfPresent(String.self, forKey: .transcriptionErrorMessage)
+        transcriptionAttemptCount = try container.decodeIfPresent(Int.self, forKey: .transcriptionAttemptCount) ?? 0
+        lastTranscriptionAttemptAt = try container.decodeIfPresent(Date.self, forKey: .lastTranscriptionAttemptAt)
+        fileURL = try container.decode(URL.self, forKey: .fileURL)
     }
 }
 

@@ -118,6 +118,145 @@ struct PhoneInboxStoreTests {
         #expect(FileManager.default.fileExists(atPath: reloaded.first?.fileURL.path ?? ""))
     }
 
+    @Test("transcription state transitions persist without changing the audio file")
+    func transcriptionStateTransitionsPersist() throws {
+        let root = try makeTemporaryDirectory()
+        let source = root.appendingPathComponent("source.m4a")
+        try Data("audio bytes".utf8).write(to: source)
+
+        let id = UUID(uuidString: "12345678-1111-2222-3333-444444444444")!
+        let store = PhoneInboxStore(rootDirectory: root.appendingPathComponent("Inbox"))
+        let imported = try store.importRecording(
+            fileURL: source,
+            metadata: InboxImportMetadata(
+                id: id,
+                originalFileName: "voice.m4a",
+                createdAt: Date(timeIntervalSince1970: 100),
+                durationSeconds: 9,
+                source: .watchConnectivity
+            )
+        )
+
+        try store.updateTranscriptionState(
+            recordingID: id,
+            status: .transcribing,
+            errorMessage: nil,
+            attemptedAt: Date(timeIntervalSince1970: 200),
+            incrementsAttemptCount: true
+        )
+        try store.updateTranscriptionState(
+            recordingID: id,
+            status: .transcriptionFailed,
+            errorMessage: "network offline",
+            attemptedAt: Date(timeIntervalSince1970: 220),
+            incrementsAttemptCount: false
+        )
+
+        let reloaded = try PhoneInboxStore(rootDirectory: root.appendingPathComponent("Inbox")).loadRecordings()
+
+        #expect(reloaded.first?.id == id)
+        #expect(reloaded.first?.status == .transcriptionFailed)
+        #expect(reloaded.first?.transcriptionErrorMessage == "network offline")
+        #expect(reloaded.first?.transcriptionAttemptCount == 1)
+        #expect(reloaded.first?.lastTranscriptionAttemptAt == Date(timeIntervalSince1970: 220))
+        #expect(reloaded.first?.storedFileName == imported.storedFileName)
+        #expect(try Data(contentsOf: reloaded.first!.fileURL) == Data("audio bytes".utf8))
+    }
+
+    @Test("legacy recording manifests decode with transcription defaults")
+    func legacyRecordingManifestDecodesWithDefaults() throws {
+        let root = try makeTemporaryDirectory()
+        let inbox = root.appendingPathComponent("Inbox")
+        let audio = inbox.appendingPathComponent("Audio", isDirectory: true)
+        try FileManager.default.createDirectory(at: audio, withIntermediateDirectories: true)
+        try Data("legacy audio".utf8).write(to: audio.appendingPathComponent("legacy.m4a"))
+
+        let json = """
+        [
+          {
+            "createdAt" : 100,
+            "durationSeconds" : 3.5,
+            "fileURL" : "\(audio.appendingPathComponent("legacy.m4a").path)",
+            "id" : "99999999-8888-7777-6666-555555555555",
+            "importedAt" : 120,
+            "originalFileName" : "legacy.m4a",
+            "source" : "watchConnectivity",
+            "status" : "readyForTranscription",
+            "storedFileName" : "legacy.m4a"
+          }
+        ]
+        """
+        try json.data(using: .utf8)!.write(to: inbox.appendingPathComponent("recordings.json"))
+
+        let recordings = try PhoneInboxStore(rootDirectory: inbox).loadRecordings()
+
+        #expect(recordings.first?.status == .readyForTranscription)
+        #expect(recordings.first?.transcriptionErrorMessage == nil)
+        #expect(recordings.first?.transcriptionAttemptCount == 0)
+        #expect(recordings.first?.lastTranscriptionAttemptAt == nil)
+    }
+
+    @Test("interrupted transcriptions are marked failed and retryable")
+    func interruptedTranscriptionsBecomeFailed() throws {
+        let root = try makeTemporaryDirectory()
+        let source = root.appendingPathComponent("source.m4a")
+        try Data("audio bytes".utf8).write(to: source)
+        let store = PhoneInboxStore(rootDirectory: root.appendingPathComponent("Inbox"))
+        let interruptedID = UUID(uuidString: "CCCCCCCC-1111-2222-3333-444444444444")!
+        let completedID = UUID(uuidString: "DDDDDDDD-1111-2222-3333-444444444444")!
+
+        _ = try store.importRecording(
+            fileURL: source,
+            metadata: InboxImportMetadata(
+                id: interruptedID,
+                originalFileName: "interrupted.m4a",
+                createdAt: Date(timeIntervalSince1970: 10),
+                durationSeconds: 5,
+                source: .watchConnectivity
+            )
+        )
+        _ = try store.importRecording(
+            fileURL: source,
+            metadata: InboxImportMetadata(
+                id: completedID,
+                originalFileName: "completed.m4a",
+                createdAt: Date(timeIntervalSince1970: 20),
+                durationSeconds: 6,
+                source: .watchConnectivity
+            )
+        )
+        try store.updateTranscriptionState(
+            recordingID: interruptedID,
+            status: .transcribing,
+            errorMessage: nil,
+            attemptedAt: Date(timeIntervalSince1970: 30),
+            incrementsAttemptCount: true
+        )
+        try store.updateTranscriptionState(
+            recordingID: completedID,
+            status: .draftReady,
+            errorMessage: nil,
+            attemptedAt: Date(timeIntervalSince1970: 40),
+            incrementsAttemptCount: true
+        )
+
+        let changedCount = try store.markInterruptedTranscriptionsFailed(
+            message: "Interrupted before finishing. Tap retry.",
+            at: Date(timeIntervalSince1970: 50)
+        )
+        let recordings = try store.loadRecordings()
+        let interrupted = recordings.first { $0.id == interruptedID }
+        let completed = recordings.first { $0.id == completedID }
+
+        #expect(changedCount == 1)
+        #expect(interrupted?.status == .transcriptionFailed)
+        #expect(interrupted?.transcriptionErrorMessage == "Interrupted before finishing. Tap retry.")
+        #expect(interrupted?.transcriptionAttemptCount == 1)
+        #expect(interrupted?.lastTranscriptionAttemptAt == Date(timeIntervalSince1970: 50))
+        #expect(completed?.status == .draftReady)
+        #expect(completed?.transcriptionErrorMessage == nil)
+    }
+
     private func makeTemporaryDirectory() throws -> URL {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("PhoneInboxStoreTests-\(UUID().uuidString)", isDirectory: true)

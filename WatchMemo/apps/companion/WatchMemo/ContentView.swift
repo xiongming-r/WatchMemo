@@ -161,6 +161,11 @@ private struct RecordingRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+                Text(transcriptionStatusText)
+                    .font(.caption2)
+                    .foregroundStyle(transcriptionStatusColor)
+                    .lineLimit(2)
+
                 if let draft {
                     NotePreview(draft: draft)
                         .padding(.top, 2)
@@ -189,14 +194,69 @@ private struct RecordingRow: View {
                     .frame(width: 28, height: 28)
             } else {
                 Button(action: onTranscriptTapped) {
-                    Image(systemName: draft == nil ? "sparkles" : "arrow.triangle.2.circlepath")
+                    Image(systemName: transcriptButtonIcon)
                         .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.borderless)
-                .accessibilityLabel(draft == nil ? "Create draft" : "Refresh draft")
+                .accessibilityLabel(transcriptButtonLabel)
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private var transcriptionStatusText: String {
+        switch recording.status {
+        case .readyForTranscription:
+            return "Draft not created"
+        case .transcribing:
+            return isProcessingTranscript ? "Draft in progress" : "Draft interrupted. Tap retry."
+        case .draftReady:
+            return "Draft ready"
+        case .transcriptionFailed:
+            let attempts = recording.transcriptionAttemptCount
+            let attemptText = attempts > 0 ? " after \(attempts) attempt\(attempts == 1 ? "" : "s")" : ""
+            if let message = recording.transcriptionErrorMessage, !message.isEmpty {
+                return "Draft failed\(attemptText): \(message)"
+            }
+            return "Draft failed\(attemptText)"
+        case .transcribingLater:
+            return "Draft queued"
+        }
+    }
+
+    private var transcriptionStatusColor: Color {
+        switch recording.status {
+        case .draftReady:
+            return .green
+        case .transcriptionFailed:
+            return .red
+        case .transcribing:
+            return isProcessingTranscript ? .secondary : .orange
+        case .readyForTranscription, .transcribingLater:
+            return .secondary
+        }
+    }
+
+    private var transcriptButtonIcon: String {
+        switch recording.status {
+        case .transcriptionFailed, .transcribing:
+            return "arrow.triangle.2.circlepath"
+        case .draftReady:
+            return "arrow.triangle.2.circlepath"
+        case .readyForTranscription, .transcribingLater:
+            return draft == nil ? "sparkles" : "arrow.triangle.2.circlepath"
+        }
+    }
+
+    private var transcriptButtonLabel: String {
+        switch recording.status {
+        case .transcriptionFailed, .transcribing:
+            return "Retry draft"
+        case .draftReady:
+            return "Refresh draft"
+        case .readyForTranscription, .transcribingLater:
+            return draft == nil ? "Create draft" : "Refresh draft"
+        }
     }
 
     private func format(duration: TimeInterval) -> String {
