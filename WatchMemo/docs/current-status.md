@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-02 09:55 Asia/Shanghai
+Last updated: 2026-06-02 12:05 Asia/Shanghai
 
 ## Current Phase
 
@@ -10,7 +10,7 @@ Latest completed checkpoint:
 
 - `docs/phase-logs/phase-8-structured-notes.md`
 
-Next active phase:
+Current active phase:
 
 - Phase 9 note delivery/export layer: improve the iPhone note detail/export
   experience and prepare a destination boundary before integrating Obsidian or
@@ -84,6 +84,10 @@ Continue with provider and persistence work:
   launched on real devices. The user confirmed true-device validation passed:
   Apple Watch recording reached iPhone, AI processing produced structured note
   output, and Markdown copy was available.
+- Phase 9 Obsidian Export v0 is in local development: the iPhone app can store
+  Obsidian settings and generate `obsidian://new` export URLs for short notes.
+  Long Markdown is refused for URI export and copied instead, preserving content
+  while leaving file-based long-note export for a later phase.
 
 ## Guardrails
 
@@ -168,3 +172,7 @@ Continue with provider and persistence work:
   confirmed the embedded Watch app, both apps installed and launched on the
   user's real iPhone and Apple Watch, and the user confirmed the end-to-end
   structured note flow works on devices.
+- 2026-06-02 12:05: Added Phase 9 Obsidian Export v0 locally. `NoteDeliveryCore`
+  tests cover URL generation and long-content refusal. `TranscriptPipelineCore`
+  and `PhoneInboxCore` tests still pass. iOS Simulator, watchOS generic, and
+  iOS generic builds pass. True-device Obsidian validation is pending.

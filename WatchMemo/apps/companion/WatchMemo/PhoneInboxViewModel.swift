@@ -7,12 +7,15 @@ final class PhoneInboxViewModel: ObservableObject {
     @Published private(set) var transcriptDrafts: [InboxRecording.ID: TranscriptDraft] = [:]
     @Published private(set) var processingTranscriptIDs: Set<InboxRecording.ID> = []
     @Published private(set) var providerSettings: ProviderRuntimeSettings
+    @Published private(set) var obsidianSettings: ObsidianExportSettings
     @Published private(set) var hasSavedAPIKey: Bool
     @Published private(set) var statusText = "Loading inbox"
 
     private let store: PhoneInboxStore
     private let draftStore: TranscriptDraftStore
     private let providerSettingsStore: ProviderSettingsStore
+    private let obsidianSettingsStore: ObsidianSettingsStore
+    private let obsidianURLBuilder: ObsidianExportURLBuilder
     private let apiKeyStore: APIKeyStore
     private let receiver: PhoneConnectivityReceiver
 
@@ -20,13 +23,18 @@ final class PhoneInboxViewModel: ObservableObject {
         store: PhoneInboxStore = PhoneInboxStore(),
         draftStore: TranscriptDraftStore = TranscriptDraftStore(),
         providerSettingsStore: ProviderSettingsStore = ProviderSettingsStore(),
+        obsidianSettingsStore: ObsidianSettingsStore = ObsidianSettingsStore(),
+        obsidianURLBuilder: ObsidianExportURLBuilder = ObsidianExportURLBuilder(),
         apiKeyStore: APIKeyStore = APIKeyStore()
     ) {
         self.store = store
         self.draftStore = draftStore
         self.providerSettingsStore = providerSettingsStore
+        self.obsidianSettingsStore = obsidianSettingsStore
+        self.obsidianURLBuilder = obsidianURLBuilder
         self.apiKeyStore = apiKeyStore
         self.providerSettings = providerSettingsStore.load()
+        self.obsidianSettings = obsidianSettingsStore.load()
         self.hasSavedAPIKey = apiKeyStore.hasKey()
         self.receiver = PhoneConnectivityReceiver(store: store)
 
@@ -87,6 +95,47 @@ final class PhoneInboxViewModel: ObservableObject {
     func deleteAPIKey() throws {
         try apiKeyStore.delete()
         hasSavedAPIKey = apiKeyStore.hasKey()
+    }
+
+    func saveObsidianSettings(_ settings: ObsidianExportSettings) throws {
+        try obsidianSettingsStore.save(settings)
+        obsidianSettings = settings
+        statusText = "Obsidian settings saved"
+    }
+
+    func makeObsidianExportURL(for recording: InboxRecording) throws -> URL {
+        guard let draft = transcriptDrafts[recording.id] else {
+            throw ObsidianAppExportError.missingDraft
+        }
+
+        let payload = ObsidianNotePayload(
+            title: draft.structuredNote?.title ?? recording.originalFileName,
+            markdown: draft.markdownText,
+            createdAt: recording.createdAt
+        )
+
+        return try obsidianURLBuilder.makeNewNoteURL(
+            payload: payload,
+            settings: obsidianSettings
+        )
+    }
+
+    func markObsidianExportResult(opened: Bool) {
+        statusText = opened
+            ? "Opened Obsidian export"
+            : "Could not open Obsidian"
+    }
+
+    func markObsidianURICopied() {
+        statusText = "Obsidian URL copied"
+    }
+
+    func markLongObsidianNoteCopied(_ error: ObsidianExportError) {
+        statusText = "\(error.localizedDescription). Markdown copied instead."
+    }
+
+    func markObsidianExportFailed(_ error: Error) {
+        statusText = "Obsidian export failed: \(error.localizedDescription)"
     }
 
 #if DEBUG
@@ -162,6 +211,23 @@ final class PhoneInboxViewModel: ObservableObject {
                 ? PassthroughTranscriptCleaner()
                 : ConservativeTranscriptCleaner()
         )
+    }
+}
+
+private extension TranscriptDraft {
+    var markdownText: String {
+        structuredNote?.markdown ?? cleanedText
+    }
+}
+
+private enum ObsidianAppExportError: LocalizedError {
+    case missingDraft
+
+    var errorDescription: String? {
+        switch self {
+        case .missingDraft:
+            return "Create a draft before exporting to Obsidian"
+        }
     }
 }
 

@@ -34,6 +34,9 @@
 		B2000000000000000000005D /* ProviderSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000005E /* ProviderSettingsView.swift */; };
 		B20000000000000000000070 /* WatchMemoWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = B20000000000000000000026 /* WatchMemoWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B20000000000000000000074 /* TranscriptNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000075 /* TranscriptNote.swift */; };
+		B20000000000000000000076 /* ObsidianSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000079 /* ObsidianSettingsStore.swift */; };
+		B20000000000000000000077 /* ObsidianSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000007A /* ObsidianSettingsView.swift */; };
+		B20000000000000000000078 /* ObsidianExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000007B /* ObsidianExport.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -89,6 +92,9 @@
 		B2000000000000000000005C /* ProviderSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderSettingsStore.swift; sourceTree = "<group>"; };
 		B2000000000000000000005E /* ProviderSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderSettingsView.swift; sourceTree = "<group>"; };
 		B20000000000000000000075 /* TranscriptNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptNote.swift; sourceTree = "<group>"; };
+		B20000000000000000000079 /* ObsidianSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObsidianSettingsStore.swift; sourceTree = "<group>"; };
+		B2000000000000000000007A /* ObsidianSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObsidianSettingsView.swift; sourceTree = "<group>"; };
+		B2000000000000000000007B /* ObsidianExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObsidianExport.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +121,7 @@
 				B20000000000000000000003 /* WatchMemo */,
 				B20000000000000000000008 /* ../../packages/PhoneInboxCore/Sources/PhoneInboxCore */,
 				B20000000000000000000009 /* ../../packages/TranscriptPipelineCore/Sources/TranscriptPipelineCore */,
+				B2000000000000000000007C /* ../../packages/NoteDeliveryCore/Sources/NoteDeliveryCore */,
 				B20000000000000000000004 /* WatchMemoWatch */,
 				B20000000000000000000005 /* Products */,
 			);
@@ -131,6 +138,8 @@
 				B2000000000000000000005A /* APIKeyStore.swift */,
 				B2000000000000000000005C /* ProviderSettingsStore.swift */,
 				B2000000000000000000005E /* ProviderSettingsView.swift */,
+				B20000000000000000000079 /* ObsidianSettingsStore.swift */,
+				B2000000000000000000007A /* ObsidianSettingsView.swift */,
 			);
 			path = WatchMemo;
 			sourceTree = "<group>";
@@ -181,6 +190,14 @@
 				B20000000000000000000075 /* TranscriptNote.swift */,
 			);
 			path = ../../packages/TranscriptPipelineCore/Sources/TranscriptPipelineCore;
+			sourceTree = "<group>";
+		};
+		B2000000000000000000007C /* ../../packages/NoteDeliveryCore/Sources/NoteDeliveryCore */ = {
+			isa = PBXGroup;
+			children = (
+				B2000000000000000000007B /* ObsidianExport.swift */,
+			);
+			path = ../../packages/NoteDeliveryCore/Sources/NoteDeliveryCore;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -305,9 +322,12 @@
 				B2000000000000000000004B /* OpenAICompatibleTranscriptProvider.swift in Sources */,
 				B2000000000000000000004D /* ProviderRuntimeSettings.swift in Sources */,
 				B20000000000000000000074 /* TranscriptNote.swift in Sources */,
+				B20000000000000000000078 /* ObsidianExport.swift in Sources */,
 				B2000000000000000000004F /* APIKeyStore.swift in Sources */,
 				B2000000000000000000005B /* ProviderSettingsStore.swift in Sources */,
 				B2000000000000000000005D /* ProviderSettingsView.swift in Sources */,
+				B20000000000000000000076 /* ObsidianSettingsStore.swift in Sources */,
+				B20000000000000000000077 /* ObsidianSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -5,6 +5,7 @@ struct ContentView: View {
     @EnvironmentObject private var inbox: PhoneInboxViewModel
     @StateObject private var playback = AudioPlaybackController()
     @State private var isShowingProviderSettings = false
+    @State private var isShowingObsidianSettings = false
 
     var body: some View {
         NavigationStack {
@@ -52,6 +53,9 @@ struct ContentView: View {
                                 if let markdown = inbox.transcriptDrafts[recording.id]?.markdownText {
                                     UIPasteboard.general.string = markdown
                                 }
+                            },
+                            onExportObsidianTapped: {
+                                exportToObsidian(recording: recording)
                             }
                         )
                     }
@@ -78,10 +82,50 @@ struct ContentView: View {
                     }
                     .accessibilityLabel("Provider settings")
                 }
+
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isShowingObsidianSettings = true
+                    } label: {
+                        Image(systemName: "books.vertical")
+                    }
+                    .accessibilityLabel("Obsidian settings")
+                }
             }
             .sheet(isPresented: $isShowingProviderSettings) {
                 ProviderSettingsView(inbox: inbox)
             }
+            .sheet(isPresented: $isShowingObsidianSettings) {
+                ObsidianSettingsView(inbox: inbox)
+            }
+        }
+    }
+
+    private func exportToObsidian(recording: InboxRecording) {
+        do {
+            let url = try inbox.makeObsidianExportURL(for: recording)
+
+            guard inbox.obsidianSettings.openAfterExport else {
+                UIPasteboard.general.string = url.absoluteString
+                inbox.markObsidianURICopied()
+                return
+            }
+
+            UIApplication.shared.open(url) { opened in
+                Task { @MainActor in
+                    inbox.markObsidianExportResult(opened: opened)
+                }
+            }
+        } catch let error as ObsidianExportError {
+            if case .contentTooLarge = error,
+               let markdown = inbox.transcriptDrafts[recording.id]?.markdownText {
+                UIPasteboard.general.string = markdown
+                inbox.markLongObsidianNoteCopied(error)
+            } else {
+                inbox.markObsidianExportFailed(error)
+            }
+        } catch {
+            inbox.markObsidianExportFailed(error)
         }
     }
 }
@@ -94,6 +138,7 @@ private struct RecordingRow: View {
     let onPlayTapped: () -> Void
     let onTranscriptTapped: () -> Void
     let onCopyMarkdownTapped: () -> Void
+    let onExportObsidianTapped: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -126,6 +171,13 @@ private struct RecordingRow: View {
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel("Copy Markdown")
+
+                    Button(action: onExportObsidianTapped) {
+                        Label("Export Obsidian", systemImage: "books.vertical")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Export Obsidian")
                 }
             }
 
