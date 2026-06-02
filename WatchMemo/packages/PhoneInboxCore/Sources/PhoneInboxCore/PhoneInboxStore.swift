@@ -35,6 +35,7 @@ public final class PhoneInboxStore {
         }
 
         try fileManager.copyItem(at: fileURL, to: destination)
+        let audioByteCount = try fileSize(at: destination)
 
         let recording = InboxRecording(
             id: metadata.id,
@@ -43,6 +44,7 @@ public final class PhoneInboxStore {
             createdAt: metadata.createdAt,
             importedAt: Date(),
             durationSeconds: metadata.durationSeconds,
+            audioByteCount: audioByteCount,
             source: metadata.source,
             status: .readyForTranscription,
             fileURL: destination
@@ -70,7 +72,8 @@ public final class PhoneInboxStore {
         status: InboxRecording.Status,
         errorMessage: String?,
         attemptedAt: Date,
-        incrementsAttemptCount: Bool
+        incrementsAttemptCount: Bool,
+        durationSeconds: TimeInterval? = nil
     ) throws {
         var recordings = try loadRecordings()
 
@@ -81,6 +84,7 @@ public final class PhoneInboxStore {
         recordings[index].status = status
         recordings[index].transcriptionErrorMessage = errorMessage
         recordings[index].lastTranscriptionAttemptAt = attemptedAt
+        recordings[index].lastTranscriptionDurationSeconds = durationSeconds
 
         if incrementsAttemptCount {
             recordings[index].transcriptionAttemptCount += 1
@@ -120,13 +124,20 @@ public final class PhoneInboxStore {
             createdAt: recording.createdAt,
             importedAt: recording.importedAt,
             durationSeconds: recording.durationSeconds,
+            audioByteCount: recording.audioByteCount,
             source: recording.source,
             status: recording.status,
             transcriptionErrorMessage: recording.transcriptionErrorMessage,
             transcriptionAttemptCount: recording.transcriptionAttemptCount,
             lastTranscriptionAttemptAt: recording.lastTranscriptionAttemptAt,
+            lastTranscriptionDurationSeconds: recording.lastTranscriptionDurationSeconds,
             fileURL: audioDirectory.appendingPathComponent(recording.storedFileName)
         )
+    }
+
+    private func fileSize(at url: URL) throws -> Int64 {
+        let attributes = try fileManager.attributesOfItem(atPath: url.path)
+        return (attributes[.size] as? NSNumber)?.int64Value ?? 0
     }
 
     private func save(_ recordings: [InboxRecording]) throws {

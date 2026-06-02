@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-02 14:45 Asia/Shanghai
+Last updated: 2026-06-02 15:35 Asia/Shanghai
 
 ## Current Phase
 
@@ -12,8 +12,8 @@ Latest completed checkpoint:
 
 Current active phase:
 
-- Ready to start Phase 11. Recommended next phase: long-recording readiness,
-  beginning with provider/audio length limits and chunk-safe local state.
+- Phase 11 long-recording diagnostics: persist and display audio size plus AI
+  processing duration before implementing chunking.
 
 ## Product Direction
 
@@ -89,6 +89,10 @@ Continue with provider and persistence work:
 - Phase 10 true-device validation passed on 2026-06-02: iPhone-side AI
   processing state is persisted per recording, including status, error message,
   attempt count, failure retry, and interrupted-processing recovery.
+- Phase 11 is in local development: each imported iPhone inbox recording now
+  captures audio byte size, AI attempts can persist elapsed processing time,
+  and the iPhone row displays compact diagnostic metrics for long-recording
+  experiments.
 
 ## Guardrails
 
@@ -185,3 +189,8 @@ Continue with provider and persistence work:
   so far. `PhoneInboxCore` now persists draft processing state, error messages,
   attempt counts, and interrupted-processing recovery. `PhoneInboxCore` tests
   pass and the iOS Simulator app build passes.
+- 2026-06-02 15:35: Phase 11 long-recording diagnostics v0 is locally
+  validated. Imported inbox recordings now persist audio byte size, AI attempts
+  persist elapsed processing time, and the iPhone row displays compact
+  diagnostics. `PhoneInboxCore`, `TranscriptPipelineCore`, and
+  `NoteDeliveryCore` tests pass; iOS Simulator and watchOS generic builds pass.

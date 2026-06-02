@@ -161,6 +161,13 @@ private struct RecordingRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+                if !diagnosticText.isEmpty {
+                    Text(diagnosticText)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
                 Text(transcriptionStatusText)
                     .font(.caption2)
                     .foregroundStyle(transcriptionStatusColor)
@@ -259,9 +266,38 @@ private struct RecordingRow: View {
         }
     }
 
+    private var diagnosticText: String {
+        var parts: [String] = []
+
+        if let audioByteCount = recording.audioByteCount {
+            parts.append(format(bytes: audioByteCount))
+        }
+
+        if let duration = recording.lastTranscriptionDurationSeconds {
+            parts.append("AI \(formatPrecise(duration: duration))")
+        }
+
+        return parts.joined(separator: " | ")
+    }
+
     private func format(duration: TimeInterval) -> String {
         let seconds = max(Int(duration.rounded()), 0)
         return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+
+    private func formatPrecise(duration: TimeInterval) -> String {
+        if duration < 10 {
+            return String(format: "%.1fs", max(duration, 0))
+        }
+
+        return String(format: "%.0fs", max(duration, 0))
+    }
+
+    private func format(bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useBytes, .useKB, .useMB, .useGB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
     }
 }
 

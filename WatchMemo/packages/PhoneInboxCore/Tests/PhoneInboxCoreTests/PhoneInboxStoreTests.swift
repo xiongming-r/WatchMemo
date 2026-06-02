@@ -32,6 +32,7 @@ struct PhoneInboxStoreTests {
         #expect(imported.durationSeconds == 12.5)
         #expect(imported.source == .simulatedImport)
         #expect(imported.status == .readyForTranscription)
+        #expect(imported.audioByteCount == 12)
         #expect(FileManager.default.fileExists(atPath: imported.fileURL.path))
 
         let reloadedStore = PhoneInboxStore(rootDirectory: root.appendingPathComponent("Inbox"))
@@ -142,14 +143,16 @@ struct PhoneInboxStoreTests {
             status: .transcribing,
             errorMessage: nil,
             attemptedAt: Date(timeIntervalSince1970: 200),
-            incrementsAttemptCount: true
+            incrementsAttemptCount: true,
+            durationSeconds: nil
         )
         try store.updateTranscriptionState(
             recordingID: id,
             status: .transcriptionFailed,
             errorMessage: "network offline",
             attemptedAt: Date(timeIntervalSince1970: 220),
-            incrementsAttemptCount: false
+            incrementsAttemptCount: false,
+            durationSeconds: 18.25
         )
 
         let reloaded = try PhoneInboxStore(rootDirectory: root.appendingPathComponent("Inbox")).loadRecordings()
@@ -159,6 +162,7 @@ struct PhoneInboxStoreTests {
         #expect(reloaded.first?.transcriptionErrorMessage == "network offline")
         #expect(reloaded.first?.transcriptionAttemptCount == 1)
         #expect(reloaded.first?.lastTranscriptionAttemptAt == Date(timeIntervalSince1970: 220))
+        #expect(reloaded.first?.lastTranscriptionDurationSeconds == 18.25)
         #expect(reloaded.first?.storedFileName == imported.storedFileName)
         #expect(try Data(contentsOf: reloaded.first!.fileURL) == Data("audio bytes".utf8))
     }
@@ -194,6 +198,8 @@ struct PhoneInboxStoreTests {
         #expect(recordings.first?.transcriptionErrorMessage == nil)
         #expect(recordings.first?.transcriptionAttemptCount == 0)
         #expect(recordings.first?.lastTranscriptionAttemptAt == nil)
+        #expect(recordings.first?.audioByteCount == nil)
+        #expect(recordings.first?.lastTranscriptionDurationSeconds == nil)
     }
 
     @Test("interrupted transcriptions are marked failed and retryable")
@@ -230,14 +236,16 @@ struct PhoneInboxStoreTests {
             status: .transcribing,
             errorMessage: nil,
             attemptedAt: Date(timeIntervalSince1970: 30),
-            incrementsAttemptCount: true
+            incrementsAttemptCount: true,
+            durationSeconds: nil
         )
         try store.updateTranscriptionState(
             recordingID: completedID,
             status: .draftReady,
             errorMessage: nil,
             attemptedAt: Date(timeIntervalSince1970: 40),
-            incrementsAttemptCount: true
+            incrementsAttemptCount: true,
+            durationSeconds: 4.5
         )
 
         let changedCount = try store.markInterruptedTranscriptionsFailed(
@@ -255,6 +263,7 @@ struct PhoneInboxStoreTests {
         #expect(interrupted?.lastTranscriptionAttemptAt == Date(timeIntervalSince1970: 50))
         #expect(completed?.status == .draftReady)
         #expect(completed?.transcriptionErrorMessage == nil)
+        #expect(completed?.lastTranscriptionDurationSeconds == 4.5)
     }
 
     private func makeTemporaryDirectory() throws -> URL {

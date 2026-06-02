@@ -64,6 +64,8 @@ final class PhoneInboxViewModel: ObservableObject {
             processingTranscriptIDs.remove(recording.id)
         }
 
+        var transcriptionStartedAt: Date?
+
         do {
             try store.updateTranscriptionState(
                 recordingID: recording.id,
@@ -74,29 +76,34 @@ final class PhoneInboxViewModel: ObservableObject {
             )
             reload(status: "Transcribing recording")
 
+            transcriptionStartedAt = Date()
             let transcriptPipeline = try makeTranscriptPipeline()
             let draft = try await transcriptPipeline.makeDraft(
                 recordingID: recording.id,
                 audioFileURL: recording.fileURL,
                 hint: recording.originalFileName
             )
+            let transcriptionDuration = transcriptionStartedAt.map { Date().timeIntervalSince($0) }
             try draftStore.save(draft)
             try store.updateTranscriptionState(
                 recordingID: recording.id,
                 status: .draftReady,
                 errorMessage: nil,
                 attemptedAt: Date(),
-                incrementsAttemptCount: false
+                incrementsAttemptCount: false,
+                durationSeconds: transcriptionDuration
             )
             transcriptDrafts[recording.id] = draft
             reload(status: "Draft ready")
         } catch {
+            let duration = transcriptionStartedAt.map { Date().timeIntervalSince($0) }
             try? store.updateTranscriptionState(
                 recordingID: recording.id,
                 status: .transcriptionFailed,
                 errorMessage: error.localizedDescription,
                 attemptedAt: Date(),
-                incrementsAttemptCount: false
+                incrementsAttemptCount: false,
+                durationSeconds: duration
             )
             reload(status: "Draft failed: \(error.localizedDescription)")
         }
