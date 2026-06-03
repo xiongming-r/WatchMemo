@@ -45,7 +45,9 @@ public enum OpenAICompatibleTranscriptProviderError: LocalizedError, Equatable {
 
 public final class OpenAICompatibleTranscriptProvider: TranscriptProvider {
     public static let defaultNoteInstruction = """
-    请只依据音频中可辨认的人声内容生成记录文本，在不改变原意的前提下，去除语气词、重复表达和明显口误，输出一段适合记录到知识库的中文文本。
+    请只依据音频中可辨认的人声内容生成记录文本，在不改变原意的前提下，去除语气词、无意义停顿、重复表达、打磕巴和明显口误，输出适合记录到知识库的清晰中文文本。
+    如果音频中能清楚区分多位说话人，请用“说话人 A：”“说话人 B：”这类标签组织对话；如果无法可靠区分，或者只有一个人在表达，不要强行标注说话人。
+    可以把口语改写成更精准的书面表达，但必须保留原意、判断边界、待确认事项和重要语气。
     如果音频没有可辨认人声、听不清、或内容不足，请只输出：无法从音频中识别出明确人声内容。
     不要编造会议、人名、时间、任务、客户、合同或任何音频中没有出现的信息。只输出整理后的正文。
     """

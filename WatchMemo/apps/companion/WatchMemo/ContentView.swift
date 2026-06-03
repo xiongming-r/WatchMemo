@@ -277,6 +277,10 @@ private struct RecordingRow: View {
             parts.append("AI \(formatPrecise(duration: duration))")
         }
 
+        if let metrics = draft?.qualityMetrics {
+            parts.append(format(metrics: metrics))
+        }
+
         return parts.joined(separator: " | ")
     }
 
@@ -298,6 +302,26 @@ private struct RecordingRow: View {
         formatter.allowedUnits = [.useBytes, .useKB, .useMB, .useGB]
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)
+    }
+
+    private func format(metrics: TranscriptQualityMetrics) -> String {
+        var parts = [
+            "Text \(metrics.rawCharacterCount)->\(metrics.cleanedCharacterCount)"
+        ]
+
+        if let ratio = metrics.compressionRatio {
+            parts.append("\(Int((ratio * 100).rounded()))%")
+        }
+
+        if metrics.usedSegmentedProcessing || metrics.segmentCount > 1 {
+            parts.append("Segments \(metrics.segmentCount)")
+        }
+
+        if metrics.hasSpeakerLabels {
+            parts.append("Speakers \(metrics.estimatedSpeakerCount)")
+        }
+
+        return parts.joined(separator: " ")
     }
 }
 

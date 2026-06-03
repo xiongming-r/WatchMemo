@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-03 14:35 Asia/Shanghai
+Last updated: 2026-06-03 15:35 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,13 +8,13 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-14-watch-pending-delivery-retry.md`
+- `docs/phase-logs/phase-15-long-audio-segmentation.md`
 
 Current active phase:
 
-- Phase 15 adaptive long audio segmentation: process short recordings
-  single-pass and split long or large recordings into 5-minute segments with
-  15-second overlap.
+- Phase 16 transcript quality and speaker metrics: improve the provider
+  instruction for messy spoken audio, store local quality metrics on drafts,
+  and show compact text/speaker diagnostics on the iPhone.
 
 ## Product Direction
 
@@ -110,6 +110,13 @@ Continue with provider and persistence work:
   single-pass; longer or larger recordings are exported into temporary
   5-minute `.m4a` segments with 15-second overlap, transcribed in order, and
   merged into one final draft.
+- Phase 16 is device-build validated: provider instructions now ask supported
+  audio-understanding models to remove fillers, repeats, stutters, and
+  meaningless pauses while preserving meaning. Drafts now persist local
+  quality metrics, including text length compression, segment count, and
+  detected `说话人 A/B/C` labels. The updated iPhone and Watch apps installed
+  and launched on real devices; true long-recording quality validation remains
+  pending.
 
 ## Guardrails
 
@@ -230,3 +237,9 @@ Continue with provider and persistence work:
   segment export for long or large recordings. Package tests, iOS Simulator
   build, real iPhone destination build, iPhone install/launch, and Watch
   install/launch pass. True-device long-recording AI validation is pending.
+- 2026-06-03 15:35: Phase 16 added draft quality metrics and lightweight
+  speaker-label detection. New tests cover single-pass metrics, segmented
+  metrics, speaker labels, legacy draft decoding, and provider prompt
+  constraints. Package tests pass, iOS Simulator build passes, real iPhone
+  destination build passes, and the updated iPhone/Watch apps installed and
+  launched on real devices. True long-recording quality validation is pending.

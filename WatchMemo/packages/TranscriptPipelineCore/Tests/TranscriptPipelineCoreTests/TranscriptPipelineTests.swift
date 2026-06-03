@@ -38,6 +38,12 @@ struct TranscriptPipelineTests {
         #expect(draft.status == .cleaned)
         #expect(draft.structuredNote?.title == "Record the pricing idea")
         #expect(draft.structuredNote?.markdown.contains("## 正文") == true)
+        #expect(draft.qualityMetrics?.rawCharacterCount == draft.rawText.count)
+        #expect(draft.qualityMetrics?.cleanedCharacterCount == draft.cleanedText.count)
+        #expect(draft.qualityMetrics?.removedFillerCount == 2)
+        #expect(draft.qualityMetrics?.segmentCount == 1)
+        #expect(draft.qualityMetrics?.usedSegmentedProcessing == false)
+        #expect(draft.qualityMetrics?.hasSpeakerLabels == false)
     }
 
     @Test("pipeline merges segment transcripts in order")
@@ -72,6 +78,33 @@ struct TranscriptPipelineTests {
         #expect(draft.rawText.contains("第三段：安排长录音测试。"))
         #expect(draft.cleanedText == draft.rawText)
         #expect(draft.structuredNote?.markdown.contains("## 正文") == true)
+        #expect(draft.qualityMetrics?.segmentCount == 3)
+        #expect(draft.qualityMetrics?.usedSegmentedProcessing == true)
+    }
+
+    @Test("pipeline detects lightweight speaker labels")
+    func pipelineDetectsSpeakerLabels() async throws {
+        let provider = FakeTranscriptProvider(
+            fixedText: """
+            说话人 A：我们先确认手表录音是否稳定。
+            说话人 B：我负责今晚整理长录音测试结果。
+            说话人 A：好的，明天再看 Obsidian 导出。
+            """
+        )
+        let pipeline = TranscriptPipeline(
+            provider: provider,
+            cleaner: PassthroughTranscriptCleaner(),
+            now: { Date(timeIntervalSince1970: 1_778_940_000) }
+        )
+
+        let draft = try await pipeline.makeDraft(
+            recordingID: UUID(uuidString: "77777777-AAAA-BBBB-CCCC-DDDDDDDDDDDD")!,
+            audioFileURL: URL(fileURLWithPath: "/tmp/speakers.m4a")
+        )
+
+        #expect(draft.qualityMetrics?.speakerLabels == ["说话人 A", "说话人 B"])
+        #expect(draft.qualityMetrics?.estimatedSpeakerCount == 2)
+        #expect(draft.qualityMetrics?.hasSpeakerLabels == true)
     }
 
     @Test("note formatter creates title summary action items tags and markdown")
@@ -144,6 +177,7 @@ struct TranscriptPipelineTests {
 
         #expect(drafts.count == 1)
         #expect(drafts[0].structuredNote == nil)
+        #expect(drafts[0].qualityMetrics == nil)
         #expect(drafts[0].cleanedText == "cleaned text")
     }
 
@@ -246,6 +280,9 @@ struct TranscriptPipelineTests {
         let body = try #require(client.capturedBodyString)
         #expect(body.contains("不要编造"))
         #expect(body.contains("无法从音频中识别出明确人声内容"))
+        #expect(body.contains("说话人 A"))
+        #expect(body.contains("不要强行标注"))
+        #expect(body.contains("去除语气词"))
     }
 
     @Test("OpenAI compatible provider parses reasoning content when message content is empty")
