@@ -34,6 +34,10 @@ public struct TranscriptNoteFormatter {
             .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
+        if let note = makeStructuredMarkdownNote(from: lines, originalText: text, createdAt: createdAt) {
+            return note
+        }
+
         let actionItems = extractActionItems(from: lines)
         let tags = extractTags(from: lines)
         let body = lines
@@ -60,6 +64,113 @@ public struct TranscriptNoteFormatter {
             tags: tags,
             markdown: markdown
         )
+    }
+
+    private func makeStructuredMarkdownNote(
+        from lines: [String],
+        originalText: String,
+        createdAt: Date
+    ) -> StructuredTranscriptNote? {
+        let title = lines
+            .first { $0.hasPrefix("# ") && !$0.hasPrefix("## ") }
+            .map(stripMarkdownHeading)
+        let sections = markdownSections(from: lines)
+
+        guard title != nil || !sections.isEmpty else {
+            return nil
+        }
+
+        let summaryText = sectionText(for: "摘要", in: sections)
+        let dialogueText = sectionText(for: "对话整理", in: sections)
+        let bodyText = sectionText(for: "正文", in: sections)
+        let conclusionText = sectionText(for: "关键结论", in: sections)
+        let baseBody = dialogueText.isEmpty ? bodyText : dialogueText
+        let noteBody: String
+
+        if !baseBody.isEmpty, !conclusionText.isEmpty {
+            noteBody = [baseBody, "## 关键结论", conclusionText].joined(separator: "\n")
+        } else if !baseBody.isEmpty {
+            noteBody = baseBody
+        } else if !conclusionText.isEmpty {
+            noteBody = conclusionText
+        } else {
+            noteBody = originalText.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        let actionItems = actionItemsFromSection(sections["待办"] ?? [])
+        let tags = tagsFromSection(sections["标签"] ?? [])
+        let resolvedTitle = (title?.isEmpty == false ? title : nil) ?? makeTitle(from: noteBody)
+        let resolvedSummary = summaryText.isEmpty ? makeSummary(from: noteBody) : summaryText
+        let markdown = makeMarkdown(
+            title: resolvedTitle,
+            body: noteBody,
+            summary: resolvedSummary,
+            actionItems: actionItems,
+            tags: tags,
+            createdAt: createdAt
+        )
+
+        return StructuredTranscriptNote(
+            title: resolvedTitle,
+            body: noteBody,
+            summary: resolvedSummary,
+            actionItems: actionItems,
+            tags: tags,
+            markdown: markdown
+        )
+    }
+
+    private func markdownSections(from lines: [String]) -> [String: [String]] {
+        var sections: [String: [String]] = [:]
+        var currentHeading: String?
+
+        for line in lines {
+            guard line.hasPrefix("## ") else {
+                if let currentHeading {
+                    sections[currentHeading, default: []].append(line)
+                }
+                continue
+            }
+
+            let heading = stripMarkdownHeading(line)
+            currentHeading = heading
+            sections[heading, default: []] = sections[heading, default: []]
+        }
+
+        return sections
+    }
+
+    private func sectionText(for heading: String, in sections: [String: [String]]) -> String {
+        (sections[heading] ?? [])
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func stripMarkdownHeading(_ line: String) -> String {
+        line.replacingOccurrences(of: #"^#+\s*"#, with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func actionItemsFromSection(_ lines: [String]) -> [String] {
+        lines.map { line in
+            stripKnownPrefix(
+                from: line,
+                prefixes: ["- [ ]", "- [x]", "- [X]", "- ", "待办：", "待办:", "TODO：", "TODO:"]
+            )
+        }
+        .filter { !$0.isEmpty }
+    }
+
+    private func tagsFromSection(_ lines: [String]) -> [String] {
+        lines
+            .flatMap { line in
+                stripKnownPrefix(from: line, prefixes: ["标签：", "标签:", "Tags：", "Tags:"])
+                    .split { character in
+                        character == "," || character == "，" || character == " " || character == "#"
+                    }
+                    .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            }
+            .filter { !$0.isEmpty }
     }
 
     private func makeTitle(from text: String) -> String {

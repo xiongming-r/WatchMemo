@@ -6,6 +6,7 @@ final class PhoneInboxViewModel: ObservableObject {
     @Published private(set) var recordings: [InboxRecording] = []
     @Published private(set) var transcriptDrafts: [InboxRecording.ID: TranscriptDraft] = [:]
     @Published private(set) var processingTranscriptIDs: Set<InboxRecording.ID> = []
+    @Published private(set) var audioEnhancedRecordingIDs: Set<InboxRecording.ID> = []
     @Published private(set) var providerSettings: ProviderRuntimeSettings
     @Published private(set) var obsidianSettings: ObsidianExportSettings
     @Published private(set) var hasSavedAPIKey: Bool
@@ -79,8 +80,11 @@ final class PhoneInboxViewModel: ObservableObject {
             transcriptionStartedAt = Date()
             let transcriptPipeline = try makeTranscriptPipeline()
             var temporarySegmentURLs: [URL] = []
+            var temporaryUploadURLs: [URL] = []
+            var didEnhanceAudio = false
             defer {
                 temporarySegmentURLs.forEach { try? FileManager.default.removeItem(at: $0) }
+                temporaryUploadURLs.forEach { try? FileManager.default.removeItem(at: $0) }
             }
 
             let draft: TranscriptDraft
@@ -89,9 +93,20 @@ final class PhoneInboxViewModel: ObservableObject {
                 audioByteCount: recording.audioByteCount
             ) {
             case .singlePass:
+                reload(status: "Enhancing audio")
+                let uploadAudio = try prepareAudioForUpload(
+                    audioFileURL: recording.fileURL,
+                    recordingID: recording.id,
+                    label: "single"
+                )
+                if let temporaryURL = uploadAudio.temporaryFileURL {
+                    temporaryUploadURLs.append(temporaryURL)
+                }
+                didEnhanceAudio = didEnhanceAudio || uploadAudio.wasEnhanced
+                reload(status: "Transcribing recording")
                 draft = try await transcriptPipeline.makeDraft(
                     recordingID: recording.id,
-                    audioFileURL: recording.fileURL,
+                    audioFileURL: uploadAudio.fileURL,
                     hint: recording.originalFileName
                 )
             case .segmented(let segmentDurationSeconds, let overlapSeconds):
@@ -107,9 +122,21 @@ final class PhoneInboxViewModel: ObservableObject {
                     segments: plan.segments
                 )
                 reload(status: "Transcribing \(temporarySegmentURLs.count) segments")
+                let uploadSegmentURLs = try temporarySegmentURLs.enumerated().map { index, segmentURL in
+                    let uploadAudio = try prepareAudioForUpload(
+                        audioFileURL: segmentURL,
+                        recordingID: recording.id,
+                        label: "segment-\(index)"
+                    )
+                    if let temporaryURL = uploadAudio.temporaryFileURL {
+                        temporaryUploadURLs.append(temporaryURL)
+                    }
+                    didEnhanceAudio = didEnhanceAudio || uploadAudio.wasEnhanced
+                    return uploadAudio.fileURL
+                }
                 draft = try await transcriptPipeline.makeDraftFromSegments(
                     recordingID: recording.id,
-                    segmentFileURLs: temporarySegmentURLs,
+                    segmentFileURLs: uploadSegmentURLs,
                     hint: recording.originalFileName
                 )
             }
@@ -124,6 +151,9 @@ final class PhoneInboxViewModel: ObservableObject {
                 durationSeconds: transcriptionDuration
             )
             transcriptDrafts[recording.id] = draft
+            if didEnhanceAudio {
+                audioEnhancedRecordingIDs.insert(recording.id)
+            }
             reload(status: "Draft ready")
         } catch {
             let duration = transcriptionStartedAt.map { Date().timeIntervalSince($0) }
@@ -287,6 +317,27 @@ final class PhoneInboxViewModel: ObservableObject {
                 ? PassthroughTranscriptCleaner()
                 : ConservativeTranscriptCleaner()
         )
+    }
+
+    private func prepareAudioForUpload(
+        audioFileURL: URL,
+        recordingID: InboxRecording.ID,
+        label: String
+    ) throws -> AudioUploadPreparation {
+        guard providerSettings.selectedProvider == .openAICompatible else {
+            return AudioUploadPreparation(fileURL: audioFileURL, temporaryFileURL: nil, wasEnhanced: false)
+        }
+
+        do {
+            return try AudioUploadPreprocessor().prepare(
+                audioFileURL: audioFileURL,
+                recordingID: recordingID,
+                label: label
+            )
+        } catch {
+            statusText = "Audio enhancement skipped: \(error.localizedDescription)"
+            return AudioUploadPreparation(fileURL: audioFileURL, temporaryFileURL: nil, wasEnhanced: false)
+        }
     }
 }
 
@@ -472,6 +523,151 @@ private enum AudioSegmentExporterError: LocalizedError {
         case .exportCancelled:
             return "Audio segment export was cancelled"
         }
+    }
+}
+
+private struct AudioUploadPreparation {
+    let fileURL: URL
+    let temporaryFileURL: URL?
+    let wasEnhanced: Bool
+}
+
+private struct AudioUploadPreprocessor {
+    private let targetRMS: Float = pow(10, -26.0 / 20.0)
+    private let silenceRMS: Float = pow(10, -58.0 / 20.0)
+    private let peakHeadroom: Float = pow(10, -1.0 / 20.0)
+    private let maxGain: Float = pow(10, 18.0 / 20.0)
+    private let minimumUsefulGain: Float = pow(10, 3.0 / 20.0)
+
+    func prepare(
+        audioFileURL: URL,
+        recordingID: UUID,
+        label: String
+    ) throws -> AudioUploadPreparation {
+        let inputFile = try AVAudioFile(forReading: audioFileURL)
+        let format = inputFile.processingFormat
+        let frameCount = AVAudioFrameCount(inputFile.length)
+
+        guard frameCount > 0,
+              let inputBuffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+            return AudioUploadPreparation(fileURL: audioFileURL, temporaryFileURL: nil, wasEnhanced: false)
+        }
+
+        try inputFile.read(into: inputBuffer)
+        guard let channelData = inputBuffer.floatChannelData else {
+            return AudioUploadPreparation(fileURL: audioFileURL, temporaryFileURL: nil, wasEnhanced: false)
+        }
+
+        let frameLength = Int(inputBuffer.frameLength)
+        let channelCount = Int(format.channelCount)
+        guard frameLength > 0, channelCount > 0 else {
+            return AudioUploadPreparation(fileURL: audioFileURL, temporaryFileURL: nil, wasEnhanced: false)
+        }
+
+        var didEnhance = false
+        let windowFrameCount = max(Int(format.sampleRate * 0.5), 1)
+        var startFrame = 0
+
+        while startFrame < frameLength {
+            let endFrame = min(startFrame + windowFrameCount, frameLength)
+            let gain = gainForWindow(
+                channelData: channelData,
+                channelCount: channelCount,
+                startFrame: startFrame,
+                endFrame: endFrame
+            )
+
+            if gain >= minimumUsefulGain {
+                didEnhance = true
+                apply(gain: gain, to: channelData, channelCount: channelCount, startFrame: startFrame, endFrame: endFrame)
+            }
+
+            startFrame = endFrame
+        }
+
+        guard didEnhance else {
+            return AudioUploadPreparation(fileURL: audioFileURL, temporaryFileURL: nil, wasEnhanced: false)
+        }
+
+        let outputURL = try makeOutputURL(recordingID: recordingID, label: label)
+        let outputSettings: [String: Any] = [
+            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+            AVSampleRateKey: format.sampleRate,
+            AVNumberOfChannelsKey: channelCount,
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
+            AVEncoderBitRateKey: 64_000
+        ]
+        let outputFile = try AVAudioFile(
+            forWriting: outputURL,
+            settings: outputSettings,
+            commonFormat: format.commonFormat,
+            interleaved: format.isInterleaved
+        )
+        try outputFile.write(from: inputBuffer)
+
+        return AudioUploadPreparation(fileURL: outputURL, temporaryFileURL: outputURL, wasEnhanced: true)
+    }
+
+    private func gainForWindow(
+        channelData: UnsafePointer<UnsafeMutablePointer<Float>>,
+        channelCount: Int,
+        startFrame: Int,
+        endFrame: Int
+    ) -> Float {
+        var squareSum: Double = 0
+        var peak: Float = 0
+        var sampleCount = 0
+
+        for channelIndex in 0..<channelCount {
+            let samples = channelData[channelIndex]
+            for frameIndex in startFrame..<endFrame {
+                let value = samples[frameIndex]
+                squareSum += Double(value * value)
+                peak = max(peak, abs(value))
+                sampleCount += 1
+            }
+        }
+
+        guard sampleCount > 0 else {
+            return 1
+        }
+
+        let rms = Float(sqrt(squareSum / Double(sampleCount)))
+        guard rms > silenceRMS, peak > 0 else {
+            return 1
+        }
+
+        return min(targetRMS / rms, peakHeadroom / peak, maxGain)
+    }
+
+    private func apply(
+        gain: Float,
+        to channelData: UnsafePointer<UnsafeMutablePointer<Float>>,
+        channelCount: Int,
+        startFrame: Int,
+        endFrame: Int
+    ) {
+        for channelIndex in 0..<channelCount {
+            let samples = channelData[channelIndex]
+            for frameIndex in startFrame..<endFrame {
+                samples[frameIndex] = samples[frameIndex] * gain
+            }
+        }
+    }
+
+    private func makeOutputURL(recordingID: UUID, label: String) throws -> URL {
+        let safeLabel = label.replacingOccurrences(of: #"[^A-Za-z0-9_-]"#, with: "-", options: .regularExpression)
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("WatchMemoEnhancedAudio", isDirectory: true)
+            .appendingPathComponent(recordingID.uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let outputURL = directory.appendingPathComponent("\(safeLabel)-enhanced.m4a")
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
+
+        return outputURL
     }
 }
 

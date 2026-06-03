@@ -107,6 +107,64 @@ struct TranscriptPipelineTests {
         #expect(draft.qualityMetrics?.hasSpeakerLabels == true)
     }
 
+    @Test("pipeline detects markdown speaker labels with descriptions")
+    func pipelineDetectsMarkdownSpeakerLabelsWithDescriptions() async throws {
+        let provider = FakeTranscriptProvider(
+            fixedText: """
+            **说话人A（女）：** 这个一定很香吧。
+            **说话人B（男）：** 我在直播里看到这个，买来给你们尝尝。
+            """
+        )
+        let pipeline = TranscriptPipeline(
+            provider: provider,
+            cleaner: PassthroughTranscriptCleaner(),
+            now: { Date(timeIntervalSince1970: 1_778_945_000) }
+        )
+
+        let draft = try await pipeline.makeDraft(
+            recordingID: UUID(uuidString: "66666666-AAAA-BBBB-CCCC-DDDDDDDDDDDD")!,
+            audioFileURL: URL(fileURLWithPath: "/tmp/markdown-speakers.m4a")
+        )
+
+        #expect(draft.qualityMetrics?.speakerLabels == ["说话人A（女）", "说话人B（男）"])
+        #expect(draft.qualityMetrics?.estimatedSpeakerCount == 2)
+    }
+
+    @Test("note formatter parses structured markdown sections")
+    func noteFormatterParsesStructuredMarkdownSections() {
+        let formatter = TranscriptNoteFormatter()
+        let note = formatter.format(
+            text: """
+            # 茶歇试吃讨论
+
+            ## 摘要
+            两位说话人讨论试吃零食、来源和口味判断。
+
+            ## 对话整理
+            **说话人A（女）：** 这个一定很香吧。
+            **说话人B（男）：** 我在直播里看到这个，买来给你们尝尝。
+
+            ## 关键结论
+            - 这段录音属于轻松试吃交流，没有正式任务。
+
+            ## 待办
+            - [ ] 下次记录时靠近声源。
+
+            ## 标签
+            #试吃 #对话
+            """,
+            createdAt: Date(timeIntervalSince1970: 1_778_945_000)
+        )
+
+        #expect(note.title == "茶歇试吃讨论")
+        #expect(note.summary == "两位说话人讨论试吃零食、来源和口味判断。")
+        #expect(note.body.contains("说话人A（女）"))
+        #expect(note.body.contains("这段录音属于轻松试吃交流"))
+        #expect(note.actionItems == ["下次记录时靠近声源。"])
+        #expect(note.tags == ["试吃", "对话"])
+        #expect(note.markdown.contains("## 摘要\n两位说话人讨论试吃零食、来源和口味判断。"))
+    }
+
     @Test("note formatter creates title summary action items tags and markdown")
     func noteFormatterCreatesStructuredNote() {
         let formatter = TranscriptNoteFormatter()
@@ -281,6 +339,9 @@ struct TranscriptPipelineTests {
         #expect(body.contains("不要编造"))
         #expect(body.contains("无法从音频中识别出明确人声内容"))
         #expect(body.contains("说话人 A"))
+        #expect(body.contains("## 摘要"))
+        #expect(body.contains("## 关键结论"))
+        #expect(body.contains("## 待办"))
         #expect(body.contains("不要强行标注"))
         #expect(body.contains("去除语气词"))
     }

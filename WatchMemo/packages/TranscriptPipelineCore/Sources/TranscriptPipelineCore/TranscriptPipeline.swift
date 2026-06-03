@@ -94,7 +94,7 @@ public struct TranscriptPipeline {
     }
 
     private static func detectSpeakerLabels(in text: String) -> [String] {
-        let pattern = #"(?m)^\s*(说话人\s*[A-Za-z0-9一二三四五六七八九十]+|Speaker\s*[A-Za-z0-9]+)\s*[:：]"#
+        let pattern = #"(?m)^\s*(?:\*\*)?\s*((?:说话人|Speaker)\s*[A-Za-z0-9一二三四五六七八九十]+(?:[（(][^）)]*[）)])?)\s*[:：]"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
             return []
         }

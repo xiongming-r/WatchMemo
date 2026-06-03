@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-03 15:35 Asia/Shanghai
+Last updated: 2026-06-03 16:25 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,13 +8,13 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-15-long-audio-segmentation.md`
+- `docs/phase-logs/phase-16-transcript-quality-speakers.md`
 
 Current active phase:
 
-- Phase 16 transcript quality and speaker metrics: improve the provider
-  instruction for messy spoken audio, store local quality metrics on drafts,
-  and show compact text/speaker diagnostics on the iPhone.
+- Phase 17 audio normalization and structured notes: enhance weak audio before
+  provider upload and parse structured Markdown sections so AI drafts include
+  real summaries, conclusions, and action items.
 
 ## Product Direction
 
@@ -117,6 +117,13 @@ Continue with provider and persistence work:
   detected `说话人 A/B/C` labels. The updated iPhone and Watch apps installed
   and launched on real devices; true long-recording quality validation remains
   pending.
+- Phase 17 is device-build validated: the 89.856-second real iPhone recording
+  was diagnosed as valid but weak (`-45.1 dB`, about `67.4%` below `-35 dB`).
+  OpenAI-compatible processing now tries temporary upload-time audio
+  enhancement before model calls, and structured Markdown sections are parsed
+  into real title/summary/body/action/tag fields. The updated iPhone and Watch
+  apps installed and launched on real devices; rerunning AI on the same 1:30
+  recording is still pending.
 
 ## Guardrails
 
@@ -243,3 +250,10 @@ Continue with provider and persistence work:
   constraints. Package tests pass, iOS Simulator build passes, real iPhone
   destination build passes, and the updated iPhone/Watch apps installed and
   launched on real devices. True long-recording quality validation is pending.
+- 2026-06-03 16:25: Phase 17 diagnosed the user's 1:30 test recording and
+  added structured-note parsing plus upload-time audio enhancement. The
+  original recording is not modified; temporary enhanced `.m4a` files are used
+  only for provider requests. Package tests pass, iOS Simulator build passes,
+  real iPhone destination build passes, and the updated iPhone/Watch apps
+  installed and launched on real devices. True quality validation on the same
+  1:30 recording is pending.

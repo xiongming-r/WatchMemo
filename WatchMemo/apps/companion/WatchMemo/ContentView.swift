@@ -41,6 +41,7 @@ struct ContentView: View {
                             draft: inbox.transcriptDrafts[recording.id],
                             isPlaying: playback.playingID == recording.id,
                             isProcessingTranscript: inbox.processingTranscriptIDs.contains(recording.id),
+                            isAudioEnhanced: inbox.audioEnhancedRecordingIDs.contains(recording.id),
                             onPlayTapped: {
                                 playback.toggle(recording: recording)
                             },
@@ -135,6 +136,7 @@ private struct RecordingRow: View {
     let draft: TranscriptDraft?
     let isPlaying: Bool
     let isProcessingTranscript: Bool
+    let isAudioEnhanced: Bool
     let onPlayTapped: () -> Void
     let onTranscriptTapped: () -> Void
     let onCopyMarkdownTapped: () -> Void
@@ -275,6 +277,10 @@ private struct RecordingRow: View {
 
         if let duration = recording.lastTranscriptionDurationSeconds {
             parts.append("AI \(formatPrecise(duration: duration))")
+        }
+
+        if isAudioEnhanced {
+            parts.append("Enhanced audio")
         }
 
         if let metrics = draft?.qualityMetrics {
