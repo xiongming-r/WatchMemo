@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-03 12:05 Asia/Shanghai
+Last updated: 2026-06-03 14:05 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,13 +8,12 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-12-watch-receive-staging.md`
+- `docs/phase-logs/phase-13-import-acknowledgement.md`
 
 Current active phase:
 
-- Phase 13 iPhone import acknowledgement: make Watch final delivery success
-  depend on iPhone import persistence, not only WatchConnectivity transfer
-  completion.
+- Phase 14 Watch pending delivery retry: recover recordings stuck waiting for
+  iPhone import acknowledgement by retrying `sendingToPhone` on queue prepare.
 
 ## Product Direction
 
@@ -103,6 +102,9 @@ Continue with provider and persistence work:
   enqueues a `watchmemo.importAcknowledged` user-info acknowledgement back to
   the Watch. The Watch now marks `transferredToPhone` only after this import
   acknowledgement is received.
+- Phase 14 is in local validation: `DeliveryQueue.retryPending()` now treats
+  `sendingToPhone` as retryable, so a recording waiting for a missed or delayed
+  iPhone import acknowledgement can be resent on the next Watch queue prepare.
 
 ## Guardrails
 
@@ -214,3 +216,7 @@ Continue with provider and persistence work:
   iOS Simulator build passes, and the real iPhone destination build passes with
   embedded Watch app validation. True-device acknowledgement validation is
   pending after install.
+- 2026-06-03 14:05: Phase 14 added a tested Watch delivery retry policy and
+  updated `DeliveryQueue.retryPending()` so `recorded`, `sendingToPhone`, and
+  `failed` recordings are retried, while `transferredToPhone` remains terminal.
+  Final app build and install validation is pending.

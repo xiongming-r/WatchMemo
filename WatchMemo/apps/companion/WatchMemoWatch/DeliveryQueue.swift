@@ -40,8 +40,17 @@ actor DeliveryQueue {
             return
         }
 
-        for recording in recordings where recording.deliveryState == .recorded || recording.deliveryState == .failed {
+        for recording in recordings where shouldRetry(recording.deliveryState) {
             await attemptDelivery(recording, transport: transport)
+        }
+    }
+
+    private func shouldRetry(_ state: RecordingManifest.DeliveryState) -> Bool {
+        switch state {
+        case .recorded, .sendingToPhone, .failed:
+            return true
+        case .transferredToPhone:
+            return false
         }
     }
 
