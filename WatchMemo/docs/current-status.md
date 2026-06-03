@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-03 10:45 Asia/Shanghai
+Last updated: 2026-06-03 12:05 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,13 +8,13 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-11-long-recording-diagnostics.md`
+- `docs/phase-logs/phase-12-watch-receive-staging.md`
 
 Current active phase:
 
-- Phase 12 watch receive staging fix: stabilize iPhone import of
-  WatchConnectivity temporary files before the next true-device long-recording
-  experiment.
+- Phase 13 iPhone import acknowledgement: make Watch final delivery success
+  depend on iPhone import persistence, not only WatchConnectivity transfer
+  completion.
 
 ## Product Direction
 
@@ -99,6 +99,10 @@ Continue with provider and persistence work:
   `WCSessionFile.fileURL` is a WatchConnectivity temporary file. The iPhone app
   now stages the received file synchronously inside `didReceive file` before
   importing it on the main actor.
+- Phase 13 is locally validated: after iPhone import succeeds, the iPhone
+  enqueues a `watchmemo.importAcknowledged` user-info acknowledgement back to
+  the Watch. The Watch now marks `transferredToPhone` only after this import
+  acknowledgement is received.
 
 ## Guardrails
 
@@ -205,3 +209,8 @@ Continue with provider and persistence work:
   stages received files immediately in the delegate callback before importing
   them. Local package and app build validation is being rerun before true-device
   install.
+- 2026-06-03 12:05: Phase 13 iPhone import acknowledgement is locally
+  validated. `WatchMemoMessageCore` tests pass, `PhoneInboxCore` tests pass,
+  iOS Simulator build passes, and the real iPhone destination build passes with
+  embedded Watch app validation. True-device acknowledgement validation is
+  pending after install.

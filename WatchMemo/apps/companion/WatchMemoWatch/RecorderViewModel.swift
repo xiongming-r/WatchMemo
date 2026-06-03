@@ -25,6 +25,11 @@ final class RecorderViewModel: NSObject, ObservableObject {
                 await self?.handleTransferFinished(recordingID: recordingID, error: error)
             }
         }
+        transport.onImportAcknowledged = { [weak self] recordingID in
+            Task { @MainActor in
+                await self?.handleImportAcknowledged(recordingID: recordingID)
+            }
+        }
     }
 
     var statusTitle: String {
@@ -157,6 +162,10 @@ final class RecorderViewModel: NSObject, ObservableObject {
             return
         }
 
+        message = "Waiting for iPhone import"
+    }
+
+    private func handleImportAcknowledged(recordingID: RecordingManifest.ID) async {
         try? await store.updateRecording(id: recordingID, deliveryState: .transferredToPhone)
         message = "Transferred to iPhone"
     }

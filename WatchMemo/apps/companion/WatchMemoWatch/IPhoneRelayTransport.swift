@@ -5,6 +5,7 @@ final class IPhoneRelayTransport: NSObject, RecordingDeliveryTransport {
     static let shared = IPhoneRelayTransport()
 
     var onTransferFinished: ((RecordingManifest.ID, Error?) -> Void)?
+    var onImportAcknowledged: ((RecordingManifest.ID) -> Void)?
 
     private let session: WCSession?
 
@@ -57,6 +58,30 @@ extension IPhoneRelayTransport: WCSessionDelegate {
         }
 
         onTransferFinished?(id, error)
+    }
+
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
+        guard let acknowledgement = ImportAcknowledgementMessage(dictionary: userInfo) else {
+            return
+        }
+
+        onImportAcknowledged?(acknowledgement.recordingID)
+    }
+}
+
+private struct ImportAcknowledgementMessage {
+    static let messageType = "watchmemo.importAcknowledged"
+
+    let recordingID: UUID
+
+    init?(dictionary: [String: Any]) {
+        guard dictionary["type"] as? String == Self.messageType,
+              let idString = dictionary["recordingID"] as? String,
+              let recordingID = UUID(uuidString: idString) else {
+            return nil
+        }
+
+        self.recordingID = recordingID
     }
 }
 

@@ -41,6 +41,7 @@ final class PhoneConnectivityReceiver: NSObject {
             )
             let imported = try store.importRecording(fileURL: stagedFileURL, metadata: metadata)
             onImported?(imported)
+            acknowledgeImport(of: imported)
             updateStatus("Received \(fileName)")
         } catch {
             updateStatus("Receive failed: \(error.localizedDescription)")
@@ -49,6 +50,15 @@ final class PhoneConnectivityReceiver: NSObject {
 
     private func updateStatus(_ text: String) {
         onStatusChange?(text)
+    }
+
+    private func acknowledgeImport(of recording: InboxRecording) {
+        guard WCSession.isSupported(), WCSession.default.activationState == .activated else {
+            return
+        }
+
+        let message = ImportAcknowledgementMessage(recordingID: recording.id)
+        WCSession.default.transferUserInfo(message.dictionary)
     }
 
     private func connectivityStatus(for session: WCSession, prefix: String) -> String {
@@ -90,6 +100,19 @@ final class PhoneConnectivityReceiver: NSObject {
 
         try FileManager.default.copyItem(at: file.fileURL, to: destination)
         return destination
+    }
+}
+
+private struct ImportAcknowledgementMessage {
+    static let messageType = "watchmemo.importAcknowledged"
+
+    let recordingID: UUID
+
+    var dictionary: [String: Any] {
+        [
+            "type": Self.messageType,
+            "recordingID": recordingID.uuidString
+        ]
     }
 }
 
