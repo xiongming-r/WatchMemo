@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-03 14:05 Asia/Shanghai
+Last updated: 2026-06-03 14:35 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,12 +8,13 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-13-import-acknowledgement.md`
+- `docs/phase-logs/phase-14-watch-pending-delivery-retry.md`
 
 Current active phase:
 
-- Phase 14 Watch pending delivery retry: recover recordings stuck waiting for
-  iPhone import acknowledgement by retrying `sendingToPhone` on queue prepare.
+- Phase 15 adaptive long audio segmentation: process short recordings
+  single-pass and split long or large recordings into 5-minute segments with
+  15-second overlap.
 
 ## Product Direction
 
@@ -105,6 +106,10 @@ Continue with provider and persistence work:
 - Phase 14 is in local validation: `DeliveryQueue.retryPending()` now treats
   `sendingToPhone` as retryable, so a recording waiting for a missed or delayed
   iPhone import acknowledgement can be resent on the next Watch queue prepare.
+- Phase 15 is in local validation: recordings up to 10 minutes and 5 MB stay
+  single-pass; longer or larger recordings are exported into temporary
+  5-minute `.m4a` segments with 15-second overlap, transcribed in order, and
+  merged into one final draft.
 
 ## Guardrails
 
@@ -220,3 +225,8 @@ Continue with provider and persistence work:
   updated `DeliveryQueue.retryPending()` so `recorded`, `sendingToPhone`, and
   `failed` recordings are retried, while `transferredToPhone` remains terminal.
   Final app build and install validation is pending.
+- 2026-06-03 14:35: Phase 15 added `LongAudioProcessingCore`, ordered segment
+  draft merging in `TranscriptPipelineCore`, and iPhone-side AVFoundation
+  segment export for long or large recordings. Package tests, iOS Simulator
+  build, real iPhone destination build, iPhone install/launch, and Watch
+  install/launch pass. True-device long-recording AI validation is pending.

@@ -78,11 +78,41 @@ final class PhoneInboxViewModel: ObservableObject {
 
             transcriptionStartedAt = Date()
             let transcriptPipeline = try makeTranscriptPipeline()
-            let draft = try await transcriptPipeline.makeDraft(
-                recordingID: recording.id,
-                audioFileURL: recording.fileURL,
-                hint: recording.originalFileName
-            )
+            var temporarySegmentURLs: [URL] = []
+            defer {
+                temporarySegmentURLs.forEach { try? FileManager.default.removeItem(at: $0) }
+            }
+
+            let draft: TranscriptDraft
+            switch PhoneLongAudioProcessingStrategy.default.decision(
+                durationSeconds: recording.durationSeconds,
+                audioByteCount: recording.audioByteCount
+            ) {
+            case .singlePass:
+                draft = try await transcriptPipeline.makeDraft(
+                    recordingID: recording.id,
+                    audioFileURL: recording.fileURL,
+                    hint: recording.originalFileName
+                )
+            case .segmented(let segmentDurationSeconds, let overlapSeconds):
+                let plan = PhoneAudioSegmentPlan.make(
+                    durationSeconds: recording.durationSeconds,
+                    segmentDurationSeconds: segmentDurationSeconds,
+                    overlapSeconds: overlapSeconds
+                )
+                reload(status: "Segmenting recording into \(plan.segments.count) parts")
+                temporarySegmentURLs = try await AudioSegmentExporter().exportSegments(
+                    audioFileURL: recording.fileURL,
+                    recordingID: recording.id,
+                    segments: plan.segments
+                )
+                reload(status: "Transcribing \(temporarySegmentURLs.count) segments")
+                draft = try await transcriptPipeline.makeDraftFromSegments(
+                    recordingID: recording.id,
+                    segmentFileURLs: temporarySegmentURLs,
+                    hint: recording.originalFileName
+                )
+            }
             let transcriptionDuration = transcriptionStartedAt.map { Date().timeIntervalSince($0) }
             try draftStore.save(draft)
             try store.updateTranscriptionState(
@@ -284,6 +314,163 @@ private enum ProviderSelectionError: LocalizedError {
         switch self {
         case .missingAPIKey:
             return "OpenAI-compatible provider needs an API key"
+        }
+    }
+}
+
+private enum PhoneLongAudioProcessingDecision {
+    case singlePass
+    case segmented(segmentDurationSeconds: TimeInterval, overlapSeconds: TimeInterval)
+}
+
+private struct PhoneLongAudioProcessingStrategy {
+    static let `default` = PhoneLongAudioProcessingStrategy(
+        durationThresholdSeconds: 10 * 60,
+        byteThreshold: 5 * 1_024 * 1_024,
+        segmentDurationSeconds: 5 * 60,
+        overlapSeconds: 15
+    )
+
+    let durationThresholdSeconds: TimeInterval
+    let byteThreshold: Int64
+    let segmentDurationSeconds: TimeInterval
+    let overlapSeconds: TimeInterval
+
+    func decision(durationSeconds: TimeInterval, audioByteCount: Int64?) -> PhoneLongAudioProcessingDecision {
+        if durationSeconds > durationThresholdSeconds || (audioByteCount ?? 0) > byteThreshold {
+            return .segmented(
+                segmentDurationSeconds: segmentDurationSeconds,
+                overlapSeconds: overlapSeconds
+            )
+        }
+
+        return .singlePass
+    }
+}
+
+private struct PhoneAudioSegment {
+    let index: Int
+    let startSeconds: TimeInterval
+    let endSeconds: TimeInterval
+}
+
+private struct PhoneAudioSegmentPlan {
+    let segments: [PhoneAudioSegment]
+
+    static func make(
+        durationSeconds: TimeInterval,
+        segmentDurationSeconds: TimeInterval,
+        overlapSeconds: TimeInterval
+    ) -> PhoneAudioSegmentPlan {
+        guard durationSeconds > 0, segmentDurationSeconds > 0 else {
+            return PhoneAudioSegmentPlan(segments: [])
+        }
+
+        let safeOverlap = min(max(overlapSeconds, 0), max(segmentDurationSeconds - 1, 0))
+        let step = segmentDurationSeconds - safeOverlap
+        var segments: [PhoneAudioSegment] = []
+        var index = 0
+        var start: TimeInterval = 0
+
+        while start < durationSeconds {
+            let end = min(start + segmentDurationSeconds, durationSeconds)
+            segments.append(PhoneAudioSegment(index: index, startSeconds: start, endSeconds: end))
+
+            if end >= durationSeconds {
+                break
+            }
+
+            index += 1
+            start += step
+        }
+
+        return PhoneAudioSegmentPlan(segments: segments)
+    }
+}
+
+private struct AudioSegmentExporter {
+    func exportSegments(
+        audioFileURL: URL,
+        recordingID: UUID,
+        segments: [PhoneAudioSegment]
+    ) async throws -> [URL] {
+        guard !segments.isEmpty else {
+            throw AudioSegmentExporterError.emptyPlan
+        }
+
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("WatchMemoAudioSegments", isDirectory: true)
+            .appendingPathComponent(recordingID.uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        var outputURLs: [URL] = []
+        for segment in segments {
+            let outputURL = directory.appendingPathComponent("segment-\(segment.index).m4a")
+            if FileManager.default.fileExists(atPath: outputURL.path) {
+                try FileManager.default.removeItem(at: outputURL)
+            }
+
+            try await exportSegment(
+                audioFileURL: audioFileURL,
+                segment: segment,
+                outputURL: outputURL
+            )
+            outputURLs.append(outputURL)
+        }
+
+        return outputURLs
+    }
+
+    private func exportSegment(
+        audioFileURL: URL,
+        segment: PhoneAudioSegment,
+        outputURL: URL
+    ) async throws {
+        let asset = AVURLAsset(url: audioFileURL)
+        guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+            throw AudioSegmentExporterError.exportSessionUnavailable
+        }
+
+        exporter.outputURL = outputURL
+        exporter.outputFileType = .m4a
+        exporter.timeRange = CMTimeRange(
+            start: CMTime(seconds: segment.startSeconds, preferredTimescale: 600),
+            end: CMTime(seconds: segment.endSeconds, preferredTimescale: 600)
+        )
+
+        try await withCheckedThrowingContinuation { continuation in
+            exporter.exportAsynchronously {
+                switch exporter.status {
+                case .completed:
+                    continuation.resume()
+                case .failed:
+                    continuation.resume(throwing: exporter.error ?? AudioSegmentExporterError.exportFailed)
+                case .cancelled:
+                    continuation.resume(throwing: AudioSegmentExporterError.exportCancelled)
+                default:
+                    continuation.resume(throwing: AudioSegmentExporterError.exportFailed)
+                }
+            }
+        }
+    }
+}
+
+private enum AudioSegmentExporterError: LocalizedError {
+    case emptyPlan
+    case exportSessionUnavailable
+    case exportFailed
+    case exportCancelled
+
+    var errorDescription: String? {
+        switch self {
+        case .emptyPlan:
+            return "Audio segmentation plan is empty"
+        case .exportSessionUnavailable:
+            return "Audio segment exporter is unavailable"
+        case .exportFailed:
+            return "Audio segment export failed"
+        case .exportCancelled:
+            return "Audio segment export was cancelled"
         }
     }
 }

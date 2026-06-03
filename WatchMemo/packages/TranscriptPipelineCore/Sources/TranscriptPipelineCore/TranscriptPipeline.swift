@@ -24,6 +24,35 @@ public struct TranscriptPipeline {
         hint: String? = nil
     ) async throws -> TranscriptDraft {
         let rawText = try await provider.transcribe(audioFileURL: audioFileURL, hint: hint)
+        return makeDraft(recordingID: recordingID, rawText: rawText)
+    }
+
+    public func makeDraftFromSegments(
+        recordingID: UUID,
+        segmentFileURLs: [URL],
+        hint: String? = nil
+    ) async throws -> TranscriptDraft {
+        var segmentTexts: [String] = []
+
+        for (index, segmentURL) in segmentFileURLs.enumerated() {
+            let segmentHint = [
+                hint,
+                "segment \(index + 1) of \(segmentFileURLs.count)"
+            ]
+                .compactMap { $0 }
+                .joined(separator: " - ")
+            let text = try await provider.transcribe(audioFileURL: segmentURL, hint: segmentHint)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            if !text.isEmpty {
+                segmentTexts.append(text)
+            }
+        }
+
+        return makeDraft(recordingID: recordingID, rawText: segmentTexts.joined(separator: "\n\n"))
+    }
+
+    private func makeDraft(recordingID: UUID, rawText: String) -> TranscriptDraft {
         let cleanup = cleaner.clean(rawText)
         let createdAt = now()
 

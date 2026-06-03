@@ -40,6 +40,40 @@ struct TranscriptPipelineTests {
         #expect(draft.structuredNote?.markdown.contains("## 正文") == true)
     }
 
+    @Test("pipeline merges segment transcripts in order")
+    func pipelineMergesSegmentTranscriptsInOrder() async throws {
+        let provider = MappingTranscriptProvider(textByFileName: [
+            "segment-0.m4a": "第一段：讨论手表录音。",
+            "segment-1.m4a": "第二段：确认 iPhone 接收。",
+            "segment-2.m4a": "第三段：安排长录音测试。"
+        ])
+        let pipeline = TranscriptPipeline(
+            provider: provider,
+            cleaner: PassthroughTranscriptCleaner(),
+            now: { Date(timeIntervalSince1970: 1_778_930_000) }
+        )
+        let recordingID = UUID(uuidString: "88888888-AAAA-BBBB-CCCC-DDDDDDDDDDDD")!
+        let root = try makeTemporaryDirectory()
+        let segmentURLs = [
+            root.appendingPathComponent("segment-0.m4a"),
+            root.appendingPathComponent("segment-1.m4a"),
+            root.appendingPathComponent("segment-2.m4a")
+        ]
+
+        let draft = try await pipeline.makeDraftFromSegments(
+            recordingID: recordingID,
+            segmentFileURLs: segmentURLs,
+            hint: "长录音"
+        )
+
+        #expect(draft.recordingID == recordingID)
+        #expect(draft.rawText.contains("第一段：讨论手表录音。"))
+        #expect(draft.rawText.contains("第二段：确认 iPhone 接收。"))
+        #expect(draft.rawText.contains("第三段：安排长录音测试。"))
+        #expect(draft.cleanedText == draft.rawText)
+        #expect(draft.structuredNote?.markdown.contains("## 正文") == true)
+    }
+
     @Test("note formatter creates title summary action items tags and markdown")
     func noteFormatterCreatesStructuredNote() {
         let formatter = TranscriptNoteFormatter()
@@ -307,5 +341,13 @@ private final class CapturingTranscriptHTTPClient: TranscriptHTTPClient {
         capturedRequest = request
         capturedBody = body
         return (data, response)
+    }
+}
+
+private struct MappingTranscriptProvider: TranscriptProvider {
+    let textByFileName: [String: String]
+
+    func transcribe(audioFileURL: URL, hint: String?) async throws -> String {
+        textByFileName[audioFileURL.lastPathComponent] ?? ""
     }
 }
