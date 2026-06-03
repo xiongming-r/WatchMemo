@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-03 17:35 Asia/Shanghai
+Last updated: 2026-06-03 17:45 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,13 +8,14 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-18-stitch-ui-reference.md`
+- `docs/phase-logs/phase-19-stitch-inbox-ui.md`
 
 Current active phase:
 
-- Phase 19 Stitch-inspired iPhone inbox UI: convert the iPhone inbox from a
-  system `List` into a dark card-based shell with filters, memo cards, status
-  chips, static future controls, and clearer AI result previews.
+- Phase 20 Stitch-inspired AI result detail: refine the expanded iPhone memo
+  card so AI output feels closer to the Stitch detail screen, including a
+  static waveform player, summary/conclusion/transcript/action sections,
+  Obsidian preview, and a detail action bar.
 
 ## Product Direction
 
@@ -132,6 +133,10 @@ Continue with provider and persistence work:
   navigation entries, and expanded structured note previews. Core recording,
   playback, AI, Markdown copy, and Obsidian export actions remain wired to the
   existing implementation.
+- Phase 20 is locally validated. Expanded iPhone memo cards now show a
+  Stitch-like audio detail panel, structured AI sections, Obsidian preview path,
+  and detail actions while keeping playback, Markdown copy, and Obsidian export
+  wired to the existing implementation.
 
 ## Guardrails
 
@@ -270,3 +275,9 @@ Continue with provider and persistence work:
   iOS Simulator build passed, all Swift package regressions passed, and the
   final iOS Simulator build passed. Optional true-device install remains
   pending.
+- 2026-06-03 17:45: Phase 20 refined the iPhone expanded AI result display with
+  a static waveform player, structured note sections, key conclusion extraction
+  from the existing body marker, Obsidian preview, and a detail action bar. The
+  first iOS Simulator build passed after fixing one string escaping issue. All
+  Swift package regressions passed and the final iOS Simulator build passed.
+  Optional true-device install remains pending.

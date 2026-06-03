@@ -57,6 +57,7 @@ struct ContentView: View {
                                         RecordingCard(
                                             recording: recording,
                                             draft: inbox.transcriptDrafts[recording.id],
+                                            obsidianSettings: inbox.obsidianSettings,
                                             isPlaying: playback.playingID == recording.id,
                                             isProcessingTranscript: inbox.processingTranscriptIDs.contains(recording.id),
                                             isAudioEnhanced: inbox.audioEnhancedRecordingIDs.contains(recording.id),
@@ -295,6 +296,7 @@ private struct RecordingFilterControl: View {
 private struct RecordingCard: View {
     let recording: InboxRecording
     let draft: TranscriptDraft?
+    let obsidianSettings: ObsidianExportSettings
     let isPlaying: Bool
     let isProcessingTranscript: Bool
     let isAudioEnhanced: Bool
@@ -312,16 +314,23 @@ private struct RecordingCard: View {
                     cardHeader
                     metadataChips
                     statusArea
-
-                    if isExpanded, let draft {
-                        NotePreview(draft: draft)
-                            .padding(.top, 2)
-                    }
                 }
             }
             .buttonStyle(.plain)
 
-            if draft != nil || recording.status == .transcriptionFailed || recording.status == .readyForTranscription {
+            if isExpanded, let draft {
+                AIResultDetailView(
+                    recording: recording,
+                    draft: draft,
+                    obsidianSettings: obsidianSettings,
+                    isPlaying: isPlaying,
+                    onPlayTapped: onPlayTapped,
+                    onCopyMarkdownTapped: onCopyMarkdownTapped,
+                    onExportObsidianTapped: onExportObsidianTapped
+                )
+            }
+
+            if shouldShowActionBar {
                 Divider()
                     .overlay(Color.wmDivider)
 
@@ -336,6 +345,10 @@ private struct RecordingCard: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .contentShape(RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var shouldShowActionBar: Bool {
+        !isExpanded || draft == nil || recording.status == .transcriptionFailed || recording.status == .readyForTranscription
     }
 
     private var cardHeader: some View {
@@ -657,68 +670,359 @@ private struct CardActionButton: View {
     }
 }
 
-private struct NotePreview: View {
+private struct AIResultDetailView: View {
+    let recording: InboxRecording
     let draft: TranscriptDraft
+    let obsidianSettings: ObsidianExportSettings
+    let isPlaying: Bool
+    let onPlayTapped: () -> Void
+    let onCopyMarkdownTapped: () -> Void
+    let onExportObsidianTapped: () -> Void
 
     var body: some View {
-        if let note = draft.structuredNote {
-            VStack(alignment: .leading, spacing: 14) {
-                NoteSection(
-                    title: "Summary",
-                    systemName: "doc.text",
-                    accent: Color.wmCyan,
-                    content: note.summary
+        VStack(alignment: .leading, spacing: 14) {
+            AudioDetailPanel(
+                durationSeconds: recording.durationSeconds,
+                isPlaying: isPlaying,
+                onPlayTapped: onPlayTapped
+            )
+
+            if let note = draft.structuredNote {
+                StructuredNoteDetail(note: note)
+                ObsidianPreviewCard(note: note, settings: obsidianSettings, createdAt: recording.createdAt)
+            } else {
+                RawTranscriptDetail(text: draft.cleanedText)
+            }
+
+            DetailActionBar(
+                onCopyMarkdownTapped: onCopyMarkdownTapped,
+                onExportObsidianTapped: onExportObsidianTapped
+            )
+        }
+        .padding(.top, 2)
+    }
+}
+
+private struct AudioDetailPanel: View {
+    let durationSeconds: TimeInterval
+    let isPlaying: Bool
+    let onPlayTapped: () -> Void
+
+    var body: some View {
+        VStack(spacing: 13) {
+            WaveformStrip()
+
+            HStack(spacing: 18) {
+                Text("00:00")
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.wmSecondaryText)
+
+                Spacer()
+
+                Button(action: onPlayTapped) {
+                    Image(systemName: isPlaying ? "stop.fill" : "play.fill")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(Color.wmBackground)
+                        .frame(width: 50, height: 50)
+                        .background(Color.wmText)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(isPlaying ? "Stop playback" : "Play recording")
+
+                Spacer()
+
+                Text(format(duration: durationSeconds))
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.wmSecondaryText)
+            }
+        }
+        .padding(14)
+        .background(Color.wmBackground.opacity(0.75))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func format(duration: TimeInterval) -> String {
+        let seconds = max(Int(duration.rounded()), 0)
+        return String(format: "%02d:%02d", seconds / 60, seconds % 60)
+    }
+}
+
+private struct WaveformStrip: View {
+    private let levels: [CGFloat] = [
+        0.34, 0.78, 0.48, 0.92, 0.42, 0.68, 0.56, 0.86,
+        0.36, 0.72, 0.50, 0.64, 0.44, 0.58, 0.40, 0.74,
+        0.46, 0.52, 0.38, 0.62, 0.35, 0.49, 0.31, 0.57
+    ]
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 4) {
+            ForEach(levels.indices, id: \.self) { index in
+                Capsule()
+                    .fill(index < 8 ? Color.wmCyan : Color.wmDivider)
+                    .frame(width: 3, height: 38 * levels[index])
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 48)
+    }
+}
+
+private struct StructuredNoteDetail: View {
+    let note: StructuredTranscriptNote
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if !note.tags.isEmpty {
+                TagStrip(tags: note.tags)
+            }
+
+            NoteSection(
+                title: "Summary",
+                systemName: "doc.text",
+                accent: Color.wmCyan,
+                content: note.summary
+            )
+
+            if !keyConclusions.isEmpty {
+                BulletSection(
+                    title: "Key Conclusions",
+                    systemName: "lightbulb",
+                    accent: Color.wmGreen,
+                    items: keyConclusions
                 )
+            }
 
-                if !note.body.isEmpty {
-                    NoteSection(
-                        title: "Body",
-                        systemName: "text.alignleft",
-                        accent: Color.wmSecondaryText,
-                        content: note.body,
-                        lineLimit: 8
-                    )
-                }
+            if !bodyWithoutConclusions.isEmpty {
+                NoteSection(
+                    title: "Transcript",
+                    systemName: "text.alignleft",
+                    accent: Color.wmSecondaryText,
+                    content: bodyWithoutConclusions,
+                    lineLimit: 10
+                )
+            }
 
-                if !note.actionItems.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("Action Items", systemImage: "checklist")
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
-                            .foregroundStyle(Color.wmWarning)
-                            .textCase(.uppercase)
+            if !note.actionItems.isEmpty {
+                ActionItemsSection(items: note.actionItems)
+            }
+        }
+    }
 
-                        ForEach(note.actionItems, id: \.self) { item in
-                            Label(item, systemImage: "square")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundStyle(Color.wmText)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                    .padding(14)
-                    .background(Color.wmElevated)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
+    private var bodyWithoutConclusions: String {
+        splitBody.body
+    }
 
-                if !note.tags.isEmpty {
-                    HStack(spacing: 8) {
-                        ForEach(note.tags, id: \.self) { tag in
-                            Text("#\(tag)")
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                .foregroundStyle(Color.wmCyan)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(Color.wmElevated)
-                                .clipShape(Capsule())
-                        }
-                    }
+    private var keyConclusions: [String] {
+        splitBody.conclusions
+    }
+
+    private var splitBody: (body: String, conclusions: [String]) {
+        let marker = "## 关键结论"
+        guard let range = note.body.range(of: marker) else {
+            return (note.body.trimmingCharacters(in: .whitespacesAndNewlines), [])
+        }
+
+        let body = note.body[..<range.lowerBound]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let conclusionText = note.body[range.upperBound...]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let conclusions = conclusionText
+            .split(whereSeparator: \.isNewline)
+            .map { line in
+                String(line)
+                    .replacingOccurrences(of: #"^\s*[-•]\s*"#, with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            .filter { !$0.isEmpty && $0 != "无明确结论" }
+
+        return (body, conclusions)
+    }
+}
+
+private struct TagStrip: View {
+    let tags: [String]
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(tags, id: \.self) { tag in
+                    Text("#\(tag)")
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundStyle(Color.wmCyan)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.wmElevated)
+                        .clipShape(Capsule())
                 }
             }
-        } else {
-            Text(draft.cleanedText)
-                .font(.system(size: 15))
+        }
+    }
+}
+
+private struct BulletSection: View {
+    let title: String
+    let systemName: String
+    let accent: Color
+    let items: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(title, systemImage: systemName)
+                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                .foregroundStyle(accent)
+                .textCase(.uppercase)
+
+            ForEach(items, id: \.self) { item in
+                HStack(alignment: .top, spacing: 9) {
+                    Circle()
+                        .fill(accent)
+                        .frame(width: 4, height: 4)
+                        .padding(.top, 8)
+
+                    Text(item)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.wmText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .padding(14)
+        .background(Color.wmElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+private struct ActionItemsSection: View {
+    let items: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Action Items", systemImage: "checklist")
+                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                .foregroundStyle(Color.wmWarning)
+                .textCase(.uppercase)
+
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: index == items.count - 1 ? "checkmark.square" : "square")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color.wmWarning)
+                        .padding(.top, 2)
+
+                    Text(item)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.wmText)
+                        .strikethrough(index == items.count - 1 && items.count > 2, color: Color.wmSecondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .padding(14)
+        .background(Color.wmElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+private struct RawTranscriptDetail: View {
+    let text: String
+
+    var body: some View {
+        NoteSection(
+            title: "Transcript",
+            systemName: "text.alignleft",
+            accent: Color.wmSecondaryText,
+            content: text,
+            lineLimit: 12
+        )
+    }
+}
+
+private struct ObsidianPreviewCard: View {
+    let note: StructuredTranscriptNote
+    let settings: ObsidianExportSettings
+    let createdAt: Date
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: "books.vertical")
+                    .font(.system(size: 12, weight: .bold))
+                Text("Obsidian Preview")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+            }
+            .foregroundStyle(Color.wmCyan)
+
+            Text(previewPath)
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Color.wmText)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            LinearGradient(
+                colors: [Color.wmElevated.opacity(0.35), Color.wmBackground.opacity(0.9)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.wmDivider, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var previewPath: String {
+        let folder = settings.folderPath.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+        let datePrefix = Self.dateFormatter.string(from: createdAt)
+        let fileName = "\(datePrefix)_\(safeFileName(note.title)).md"
+
+        if folder.isEmpty {
+            return fileName
+        }
+
+        return "\(folder)/\(fileName)"
+    }
+
+    private func safeFileName(_ title: String) -> String {
+        let invalid = CharacterSet(charactersIn: ":/\\?%*|\"<>")
+        return title
+            .components(separatedBy: invalid)
+            .joined(separator: "-")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+}
+
+private struct DetailActionBar: View {
+    let onCopyMarkdownTapped: () -> Void
+    let onExportObsidianTapped: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            CardActionButton(
+                systemName: "doc.on.doc",
+                title: "Copy Markdown",
+                prominent: false,
+                action: onCopyMarkdownTapped
+            )
+
+            CardActionButton(
+                systemName: "books.vertical",
+                title: "Export to Obsidian",
+                prominent: true,
+                action: onExportObsidianTapped
+            )
+        }
+        .padding(8)
+        .background(Color.wmBackground.opacity(0.8))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 
