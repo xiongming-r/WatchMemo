@@ -30,3 +30,5 @@ dist/
 *.dSYM.zip
 *.dSYM
 
+# Local design exports
+stitch_watchmemo_ai_voice_link/

@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-03 16:25 Asia/Shanghai
+Last updated: 2026-06-03 17:35 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,13 +8,13 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-16-transcript-quality-speakers.md`
+- `docs/phase-logs/phase-18-stitch-ui-reference.md`
 
 Current active phase:
 
-- Phase 17 audio normalization and structured notes: enhance weak audio before
-  provider upload and parse structured Markdown sections so AI drafts include
-  real summaries, conclusions, and action items.
+- Phase 19 Stitch-inspired iPhone inbox UI: convert the iPhone inbox from a
+  system `List` into a dark card-based shell with filters, memo cards, status
+  chips, static future controls, and clearer AI result previews.
 
 ## Product Direction
 
@@ -124,6 +124,14 @@ Continue with provider and persistence work:
   into real title/summary/body/action/tag fields. The updated iPhone and Watch
   apps installed and launched on real devices; rerunning AI on the same 1:30
   recording is still pending.
+- Phase 18 captured the Google Stitch export as a UI reference. The local export
+  folder is intentionally ignored from git; the committed docs record the design
+  direction and scope.
+- Phase 19 is locally validated. The Stitch-inspired iPhone UI pass now uses
+  a dark custom shell with status strip, filters, card stack, static future
+  navigation entries, and expanded structured note previews. Core recording,
+  playback, AI, Markdown copy, and Obsidian export actions remain wired to the
+  existing implementation.
 
 ## Guardrails
 
@@ -257,3 +265,8 @@ Continue with provider and persistence work:
   real iPhone destination build passes, and the updated iPhone/Watch apps
   installed and launched on real devices. True quality validation on the same
   1:30 recording is pending.
+- 2026-06-03 17:35: Phase 18/19 imported the Stitch design direction into docs
+  and updated the iPhone inbox to a dark card-based SwiftUI shell. The first
+  iOS Simulator build passed, all Swift package regressions passed, and the
+  final iOS Simulator build passed. Optional true-device install remains
+  pending.
