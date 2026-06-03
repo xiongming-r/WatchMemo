@@ -25,17 +25,21 @@ final class PhoneConnectivityReceiver: NSObject {
         updateStatus(connectivityStatus(for: session, prefix: "Connecting"))
     }
 
-    private func receive(file: WCSessionFile) {
+    private func receive(stagedFileURL: URL, metadata rawMetadata: [String: Any]?, fallbackFileName: String) {
         do {
-            let fileName = (file.metadata?["fileName"] as? String) ?? file.fileURL.lastPathComponent
+            defer {
+                try? FileManager.default.removeItem(at: stagedFileURL)
+            }
+
+            let fileName = (rawMetadata?["fileName"] as? String) ?? fallbackFileName
             let metadata = InboxImportMetadata(
-                id: UUID(uuidString: file.metadata?["recordingID"] as? String ?? "") ?? UUID(),
+                id: UUID(uuidString: rawMetadata?["recordingID"] as? String ?? "") ?? UUID(),
                 originalFileName: fileName,
-                createdAt: createdAt(from: file.metadata),
-                durationSeconds: duration(from: file.metadata),
+                createdAt: createdAt(from: rawMetadata),
+                durationSeconds: duration(from: rawMetadata),
                 source: .watchConnectivity
             )
-            let imported = try store.importRecording(fileURL: file.fileURL, metadata: metadata)
+            let imported = try store.importRecording(fileURL: stagedFileURL, metadata: metadata)
             onImported?(imported)
             updateStatus("Received \(fileName)")
         } catch {
@@ -68,6 +72,25 @@ final class PhoneConnectivityReceiver: NSObject {
 
         return duration
     }
+
+    nonisolated private static func stageReceivedFile(_ file: WCSessionFile) throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("WatchMemoReceivedFiles", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let fileName = (file.metadata?["fileName"] as? String) ?? file.fileURL.lastPathComponent
+        let fileExtension = URL(fileURLWithPath: fileName).pathExtension
+        let destination = directory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(fileExtension.isEmpty ? "m4a" : fileExtension)
+
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try FileManager.default.removeItem(at: destination)
+        }
+
+        try FileManager.default.copyItem(at: file.fileURL, to: destination)
+        return destination
+    }
 }
 
 extension PhoneConnectivityReceiver: WCSessionDelegate {
@@ -90,8 +113,25 @@ extension PhoneConnectivityReceiver: WCSessionDelegate {
     }
 
     nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile) {
+        let metadata = file.metadata
+        let fallbackFileName = file.fileURL.lastPathComponent
+
+        let stagedFileURL: URL
+        do {
+            stagedFileURL = try Self.stageReceivedFile(file)
+        } catch {
+            Task { @MainActor in
+                updateStatus("Receive failed: \(error.localizedDescription)")
+            }
+            return
+        }
+
         Task { @MainActor in
-            receive(file: file)
+            receive(
+                stagedFileURL: stagedFileURL,
+                metadata: metadata,
+                fallbackFileName: fallbackFileName
+            )
         }
     }
 

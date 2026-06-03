@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-02 15:35 Asia/Shanghai
+Last updated: 2026-06-03 10:45 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,12 +8,13 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-10-transcription-reliability.md`
+- `docs/phase-logs/phase-11-long-recording-diagnostics.md`
 
 Current active phase:
 
-- Phase 11 long-recording diagnostics: persist and display audio size plus AI
-  processing duration before implementing chunking.
+- Phase 12 watch receive staging fix: stabilize iPhone import of
+  WatchConnectivity temporary files before the next true-device long-recording
+  experiment.
 
 ## Product Direction
 
@@ -93,6 +94,11 @@ Continue with provider and persistence work:
   captures audio byte size, AI attempts can persist elapsed processing time,
   and the iPhone row displays compact diagnostic metrics for long-recording
   experiments.
+- On 2026-06-03, a 2-minute real Watch recording exposed an iPhone receive
+  failure: `Receive failed: The file ... doesn't exist.` The root cause is that
+  `WCSessionFile.fileURL` is a WatchConnectivity temporary file. The iPhone app
+  now stages the received file synchronously inside `didReceive file` before
+  importing it on the main actor.
 
 ## Guardrails
 
@@ -194,3 +200,8 @@ Continue with provider and persistence work:
   persist elapsed processing time, and the iPhone row displays compact
   diagnostics. `PhoneInboxCore`, `TranscriptPipelineCore`, and
   `NoteDeliveryCore` tests pass; iOS Simulator and watchOS generic builds pass.
+- 2026-06-03 10:45: Phase 12 diagnosed the real-device 2-minute receive error
+  as a WatchConnectivity temporary-file lifetime race. The iPhone receiver now
+  stages received files immediately in the delegate callback before importing
+  them. Local package and app build validation is being rerun before true-device
+  install.
