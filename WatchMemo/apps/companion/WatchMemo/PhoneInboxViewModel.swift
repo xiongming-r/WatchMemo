@@ -229,6 +229,24 @@ final class PhoneInboxViewModel: ObservableObject {
         statusText = "Obsidian export failed: \(error.localizedDescription)"
     }
 
+    func archive(recording: InboxRecording) {
+        do {
+            try store.setArchiveState(recordingID: recording.id, isArchived: true, at: Date())
+            reload(status: "Recording archived")
+        } catch {
+            statusText = "Archive failed: \(error.localizedDescription)"
+        }
+    }
+
+    func restore(recording: InboxRecording) {
+        do {
+            try store.setArchiveState(recordingID: recording.id, isArchived: false, at: Date())
+            reload(status: "Recording restored to inbox")
+        } catch {
+            statusText = "Restore failed: \(error.localizedDescription)"
+        }
+    }
+
 #if DEBUG
     func importSampleRecording() {
         statusText = "Generating simulated speech"
@@ -257,12 +275,13 @@ final class PhoneInboxViewModel: ObservableObject {
     private func reload(status: String?) {
         do {
             recordings = try store.loadRecordings()
+            let inboxCount = recordings.filter { !$0.isArchived }.count
             if let status {
                 statusText = status
-            } else if recordings.isEmpty {
+            } else if inboxCount == 0 {
                 statusText = "Waiting for watch"
             } else {
-                statusText = "\(recordings.count) recording\(recordings.count == 1 ? "" : "s") in inbox"
+                statusText = "\(inboxCount) recording\(inboxCount == 1 ? "" : "s") in inbox"
             }
         } catch {
             statusText = "Inbox load failed: \(error.localizedDescription)"

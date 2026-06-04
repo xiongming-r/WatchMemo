@@ -37,6 +37,9 @@
 		B20000000000000000000076 /* ObsidianSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000079 /* ObsidianSettingsStore.swift */; };
 		B20000000000000000000077 /* ObsidianSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000007A /* ObsidianSettingsView.swift */; };
 		B20000000000000000000078 /* ObsidianExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000007B /* ObsidianExport.swift */; };
+		B2000000000000000000007D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000007E /* LaunchScreen.storyboard */; };
+		B20000000000000000000080 /* AppSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000082 /* AppSettingsStore.swift */; };
+		B20000000000000000000081 /* AppSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000083 /* AppSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -95,6 +98,9 @@
 		B20000000000000000000079 /* ObsidianSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObsidianSettingsStore.swift; sourceTree = "<group>"; };
 		B2000000000000000000007A /* ObsidianSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObsidianSettingsView.swift; sourceTree = "<group>"; };
 		B2000000000000000000007B /* ObsidianExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObsidianExport.swift; sourceTree = "<group>"; };
+		B2000000000000000000007E /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B20000000000000000000082 /* AppSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsStore.swift; sourceTree = "<group>"; };
+		B20000000000000000000083 /* AppSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +138,8 @@
 			children = (
 				B20000000000000000000021 /* WatchMemoApp.swift */,
 				B20000000000000000000022 /* ContentView.swift */,
+				B20000000000000000000082 /* AppSettingsStore.swift */,
+				B20000000000000000000083 /* AppSettingsView.swift */,
 				B2000000000000000000002C /* PhoneConnectivityReceiver.swift */,
 				B2000000000000000000002D /* PhoneInboxViewModel.swift */,
 				B2000000000000000000002E /* AudioPlaybackController.swift */,
@@ -140,6 +148,7 @@
 				B2000000000000000000005E /* ProviderSettingsView.swift */,
 				B20000000000000000000079 /* ObsidianSettingsStore.swift */,
 				B2000000000000000000007A /* ObsidianSettingsView.swift */,
+				B2000000000000000000007E /* LaunchScreen.storyboard */,
 			);
 			path = WatchMemo;
 			sourceTree = "<group>";
@@ -281,6 +290,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B2000000000000000000007D /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,6 +334,8 @@
 				B20000000000000000000074 /* TranscriptNote.swift in Sources */,
 				B20000000000000000000078 /* ObsidianExport.swift in Sources */,
 				B2000000000000000000004F /* APIKeyStore.swift in Sources */,
+				B20000000000000000000080 /* AppSettingsStore.swift in Sources */,
+				B20000000000000000000081 /* AppSettingsView.swift in Sources */,
 				B2000000000000000000005B /* ProviderSettingsStore.swift in Sources */,
 				B2000000000000000000005D /* ProviderSettingsView.swift in Sources */,
 				B20000000000000000000076 /* ObsidianSettingsStore.swift in Sources */,
@@ -401,9 +413,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 44W35PV358;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -426,9 +440,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 44W35PV358;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -451,12 +467,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 44W35PV358;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WatchMemo records audio so you can capture meetings, conversations, and ideas from your watch.";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.watchmemo.app;
 				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.watchmemo.app;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -479,12 +496,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 44W35PV358;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchMemo;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WatchMemo records audio so you can capture meetings, conversations, and ideas from your watch.";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.watchmemo.app;
 				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.watchmemo.app;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

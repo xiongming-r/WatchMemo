@@ -27,6 +27,8 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
     public var transcriptionAttemptCount: Int
     public var lastTranscriptionAttemptAt: Date?
     public var lastTranscriptionDurationSeconds: TimeInterval?
+    public var isArchived: Bool
+    public var archivedAt: Date?
     public let fileURL: URL
 
     public init(
@@ -43,6 +45,8 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
         transcriptionAttemptCount: Int = 0,
         lastTranscriptionAttemptAt: Date? = nil,
         lastTranscriptionDurationSeconds: TimeInterval? = nil,
+        isArchived: Bool = false,
+        archivedAt: Date? = nil,
         fileURL: URL
     ) {
         self.id = id
@@ -58,6 +62,8 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
         self.transcriptionAttemptCount = transcriptionAttemptCount
         self.lastTranscriptionAttemptAt = lastTranscriptionAttemptAt
         self.lastTranscriptionDurationSeconds = lastTranscriptionDurationSeconds
+        self.isArchived = isArchived
+        self.archivedAt = archivedAt
         self.fileURL = fileURL
     }
 
@@ -75,6 +81,8 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
         case transcriptionAttemptCount
         case lastTranscriptionAttemptAt
         case lastTranscriptionDurationSeconds
+        case isArchived
+        case archivedAt
         case fileURL
     }
 
@@ -97,6 +105,8 @@ public struct InboxRecording: Codable, Equatable, Identifiable {
             TimeInterval.self,
             forKey: .lastTranscriptionDurationSeconds
         )
+        isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
+        archivedAt = try container.decodeIfPresent(Date.self, forKey: .archivedAt)
         fileURL = try container.decode(URL.self, forKey: .fileURL)
     }
 }

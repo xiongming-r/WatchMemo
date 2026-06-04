@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-06-03 17:45 Asia/Shanghai
+Last updated: 2026-06-04 15:17 Asia/Shanghai
 
 ## Current Phase
 
@@ -8,14 +8,13 @@ Phase 0 is complete.
 
 Latest completed checkpoint:
 
-- `docs/phase-logs/phase-19-stitch-inbox-ui.md`
+- `docs/phase-logs/phase-22-archive-workflow.md`
 
 Current active phase:
 
-- Phase 20 Stitch-inspired AI result detail: refine the expanded iPhone memo
-  card so AI output feels closer to the Stitch detail screen, including a
-  static waveform player, summary/conclusion/transcript/action sections,
-  Obsidian preview, and a detail action bar.
+- Phase 22 Archive workflow: validate that processed memos can move out of
+  Inbox into Archive, retain audio / AI draft / copy / Obsidian export paths,
+  and be restored to Inbox.
 
 ## Product Direction
 
@@ -137,6 +136,37 @@ Continue with provider and persistence work:
   Stitch-like audio detail panel, structured AI sections, Obsidian preview path,
   and detail actions while keeping playback, Markdown copy, and Obsidian export
   wired to the existing implementation.
+- Phase 21A is locally validated. The iPhone companion app now has a real
+  `LaunchScreen.storyboard` and generated `UILaunchStoryboardName`, addressing
+  the real-device letterboxed compatibility scaling shown in the 2026-06-03
+  screenshot. The Stitch-inspired iPhone shell was also tightened for physical
+  iPhone proportions. Simulator, generic iOS device, and concrete real-iPhone
+  builds pass. On 2026-06-04, the updated iPhone and Watch apps installed and
+  launched on the real devices.
+- Phase 21B is locally build-validated. The iPhone app now uses a dedicated
+  memo detail page instead of inline card expansion, adds a unified dark
+  Settings screen, and supports app-level English / Simplified Chinese
+  switching for major UI labels. True-device feedback confirmed the new
+  navigation/settings/i18n behavior works; a duplicated detail playback panel
+  was then fixed, playback progress was added, and the updated iPhone app was
+  rebuilt, installed, and launched on the real device.
+- Phase 21C is device-build validated. The iPhone companion app now has a
+  persisted Appearance setting with explicit dark and light modes. Dark remains
+  the default, while light mode uses the `stitch_watchmemo_ai_voice_link_light`
+  token direction: `#faf9fe` app background, white cards, cool gray borders,
+  blue primary actions, red recording/error emphasis, and green completion
+  states. Simulator and real-iPhone builds passed; the updated app installed
+  and launched on the real iPhone. User visual validation of light mode remains
+  pending.
+- Phase 22 is locally build-validated. Archive is now a real workflow state:
+  recordings persist `isArchived` and `archivedAt`, Inbox shows only active
+  records, Archive shows archived records, and memo detail pages can archive or
+  restore a recording while keeping audio, AI drafts, Markdown copy, and
+  Obsidian export available. `PhoneInboxCore` tests pass, including archive /
+  restore without deleting audio. iOS Simulator and concrete real-iPhone builds
+  pass, and the updated app installed on the real iPhone. Command-line launch
+  was denied because the iPhone was locked, so manual launch after unlock is
+  still needed for visual validation.
 
 ## Guardrails
 

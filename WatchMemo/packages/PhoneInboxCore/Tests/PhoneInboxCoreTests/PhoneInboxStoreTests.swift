@@ -200,6 +200,44 @@ struct PhoneInboxStoreTests {
         #expect(recordings.first?.lastTranscriptionAttemptAt == nil)
         #expect(recordings.first?.audioByteCount == nil)
         #expect(recordings.first?.lastTranscriptionDurationSeconds == nil)
+        #expect(recordings.first?.isArchived == false)
+        #expect(recordings.first?.archivedAt == nil)
+    }
+
+    @Test("recordings can be archived and restored without deleting audio")
+    func archiveStatePersistsWithoutDeletingAudio() throws {
+        let root = try makeTemporaryDirectory()
+        let source = root.appendingPathComponent("source.m4a")
+        try Data("audio bytes".utf8).write(to: source)
+
+        let id = UUID(uuidString: "51515151-2222-3333-4444-555555555555")!
+        let store = PhoneInboxStore(rootDirectory: root.appendingPathComponent("Inbox"))
+        let imported = try store.importRecording(
+            fileURL: source,
+            metadata: InboxImportMetadata(
+                id: id,
+                originalFileName: "archive-me.m4a",
+                createdAt: Date(timeIntervalSince1970: 100),
+                durationSeconds: 12,
+                source: .watchConnectivity
+            )
+        )
+
+        try store.setArchiveState(recordingID: id, isArchived: true, at: Date(timeIntervalSince1970: 300))
+
+        var reloaded = try PhoneInboxStore(rootDirectory: root.appendingPathComponent("Inbox")).loadRecordings()
+        #expect(reloaded.first?.id == id)
+        #expect(reloaded.first?.isArchived == true)
+        #expect(reloaded.first?.archivedAt == Date(timeIntervalSince1970: 300))
+        #expect(reloaded.first?.storedFileName == imported.storedFileName)
+        #expect(try Data(contentsOf: reloaded.first!.fileURL) == Data("audio bytes".utf8))
+
+        try store.setArchiveState(recordingID: id, isArchived: false, at: Date(timeIntervalSince1970: 400))
+
+        reloaded = try PhoneInboxStore(rootDirectory: root.appendingPathComponent("Inbox")).loadRecordings()
+        #expect(reloaded.first?.isArchived == false)
+        #expect(reloaded.first?.archivedAt == nil)
+        #expect(try Data(contentsOf: reloaded.first!.fileURL) == Data("audio bytes".utf8))
     }
 
     @Test("interrupted transcriptions are marked failed and retryable")

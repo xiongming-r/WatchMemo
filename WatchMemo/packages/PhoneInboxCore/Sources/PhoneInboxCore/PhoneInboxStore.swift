@@ -112,6 +112,18 @@ public final class PhoneInboxStore {
         return changedCount
     }
 
+    public func setArchiveState(recordingID: InboxRecording.ID, isArchived: Bool, at date: Date) throws {
+        var recordings = try loadRecordings()
+
+        guard let index = recordings.firstIndex(where: { $0.id == recordingID }) else {
+            return
+        }
+
+        recordings[index].isArchived = isArchived
+        recordings[index].archivedAt = isArchived ? date : nil
+        try save(recordings)
+    }
+
     private func ensureDirectoriesExist() throws {
         try fileManager.createDirectory(at: audioDirectory, withIntermediateDirectories: true)
     }
@@ -131,6 +143,8 @@ public final class PhoneInboxStore {
             transcriptionAttemptCount: recording.transcriptionAttemptCount,
             lastTranscriptionAttemptAt: recording.lastTranscriptionAttemptAt,
             lastTranscriptionDurationSeconds: recording.lastTranscriptionDurationSeconds,
+            isArchived: recording.isArchived,
+            archivedAt: recording.archivedAt,
             fileURL: audioDirectory.appendingPathComponent(recording.storedFileName)
         )
     }
