@@ -156,7 +156,7 @@ swift test --package-path WatchMemo/packages/WatchMemoMessageCore
 
 ## 许可证
 
-许可证尚未声明。公开发布前建议选择一个开源许可证，例如 MIT、Apache-2.0 或 GPL-3.0。
+本项目基于 MIT License 开源。详情见 `LICENSE`。
 
 ---
 
@@ -316,4 +316,4 @@ Read the latest phase log before continuing development.
 
 ## License
 
-No license has been declared yet. Before publishing publicly, choose an open-source license such as MIT, Apache-2.0, or GPL-3.0.
+This project is open sourced under the MIT License. See `LICENSE` for details.
