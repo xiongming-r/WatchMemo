@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">WatchMemo app icon concept</title>
+  <desc id="desc">A deep teal app icon with a bright memo card and a waveform that suggests a W.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071921"/>
+      <stop offset="1" stop-color="#0c3544"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="26" stdDeviation="26" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="875" cy="220" r="280" fill="#4ac2ec" opacity="0.16"/>
+  <circle cx="120" cy="860" r="300" fill="#329cbc" opacity="0.14"/>
+  <g filter="url(#shadow)">
+    <rect x="224" y="188" width="576" height="648" rx="102" fill="#ddf7ff"/>
+    <rect x="250" y="214" width="524" height="596" rx="80" fill="#fff" opacity="0.25"/>
+    <path d="M644 188h104l52 118-112-14z" fill="#bce5f4" opacity="0.9"/>
+    <rect x="362" y="690" width="300" height="22" rx="11" fill="#5e97a9" opacity="0.55"/>
+    <rect x="317" y="744" width="390" height="22" rx="11" fill="#5e97a9" opacity="0.55"/>
+    <rect x="330" y="397" width="52" height="170" rx="26" fill="#02313b"/>
+    <rect x="416" y="332" width="52" height="300" rx="26" fill="#124c5b"/>
+    <rect x="502" y="267" width="52" height="430" rx="26" fill="#00677c"/>
+    <rect x="588" y="332" width="52" height="300" rx="26" fill="#124c5b"/>
+    <rect x="674" y="397" width="52" height="170" rx="26" fill="#02313b"/>
+    <rect x="512" y="289" width="10" height="386" rx="5" fill="#81e0ff" opacity="0.6"/>
+    <circle cx="502" cy="640" r="40" fill="#b1ebff" opacity="0.82"/>
+    <circle cx="502" cy="640" r="16" fill="#02313b"/>
+  </g>
+</svg>
